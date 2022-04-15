@@ -5,7 +5,7 @@ import functools
 import time
 from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
-from typing import Callable, Optional, TypeVar, Dict
+from typing import Callable, Optional, TypeVar, Dict, Union
 
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import NonExistent
@@ -25,6 +25,8 @@ def cooldown(
     time_period: float,
     bucket: CooldownBucketProtocol,
     check: Optional[MaybeCoro] = lambda *args, **kwargs: True,
+    *,
+    cooldown_id: Optional[Union[int, str]] = None,
 ):
     """
     Wrap this Callable in a cooldown.
@@ -48,6 +50,10 @@ def cooldown(
 
         I.e. If you wished to bypass cooldowns, you
         would return False if you invoked the Callable.
+    cooldown_id: Optional[Union[int, str]]
+        Useful for resetting individual stacked cooldowns.
+        This should be unique globally,
+        behaviour is not guaranteed if not unique.
 
 
     Raises
@@ -56,11 +62,8 @@ def cooldown(
         Expected the decorated function to be a coroutine
     CallableOnCooldown
         This call resulted in a cooldown being put into effect
-    InteractionBucketFailure
-        You attempted to use an Interaction based bucket
-        on a non-interaction based Callable.
     """
-    _cooldown: Cooldown = Cooldown(limit, time_period, bucket)
+    _cooldown: Cooldown = Cooldown(limit, time_period, bucket, cooldown_id=cooldown_id)
 
     def decorator(func: Callable) -> Callable:
         if not asyncio.iscoroutinefunction(func):
@@ -96,6 +99,8 @@ class Cooldown:
         time_period: float,
         bucket: Optional[CooldownBucketProtocol] = None,
         func: Optional[Callable] = None,
+        *,
+        cooldown_id: Optional[Union[int, str]] = None,
     ) -> None:
         """
         Parameters
@@ -112,16 +117,20 @@ class Cooldown:
             Defaults to :class:`CooldownBucket.all`
         func: Optional[Callable]
             The function this cooldown is attached to
+        cooldown_id: Optional[Union[int, str]]
+            Useful for resetting individual stacked cooldowns.
+            This should be unique globally,
+            behaviour is not guaranteed if not unique.
         """
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
         self.time_period: float = time_period
+        self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
         self._func: Optional[Callable] = func
         self._bucket: CooldownBucketProtocol = bucket
         self.loop: AbstractEventLoop = get_event_loop()
         self.pending_reset: bool = False
-        self.last_reset_at: Optional[float] = None
         self._last_bucket: Optional[_HashableArguments] = None
 
         self._cache: Dict[_HashableArguments, CooldownTimesPer] = {}
@@ -195,15 +204,22 @@ class Cooldown:
             self.clear()
             await asyncio.sleep(self._cache_clean_eagerness)
 
-    def clear(self, bucket: Optional[_HashableArguments] = None) -> None:
+    def clear(
+        self, bucket: Optional[_HashableArguments] = None, *, force_evict: bool = False
+    ) -> None:
         """
         Remove all un-needed buckets, this maintains buckets
-        which are currently tracking cooldowns.
+        which are currently tracking cooldown's.
 
         Parameters
         ----------
         bucket: Optional[_HashableArguments]
             The bucket we wish to reset
+        force_evict: bool
+            If ``True``, delete all tracked cooldown's
+            regardless of whether or not they are needed.
+
+            I.e. reset this back to a fresh state.
 
         Notes
         -----
@@ -213,16 +229,13 @@ class Cooldown:
         if not bucket:
             # Reset all buckets
             for bucket in list(self._cache.keys()):
-                self.clear(bucket)
-
-        current_time = time.time()
-        self.last_reset_at = current_time + self.time_period
+                self.clear(bucket, force_evict=force_evict)
 
         try:
             # Evict item from cache only if it
             # is not tracking anything
             _bucket: CooldownTimesPer = self._cache[bucket]
-            if not _bucket.has_cooldown:
+            if not _bucket.has_cooldown or force_evict:
                 del self._cache[bucket]
         except KeyError:
             pass
