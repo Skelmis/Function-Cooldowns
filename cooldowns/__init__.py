@@ -18,6 +18,6 @@ __all__ = (
     "get_remaining_calls",
     "UnknownBucket",
 )
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-version_info = VersionInfo(major=1, minor=1, micro=0, releaselevel="final", serial=0)
+version_info = VersionInfo(major=1, minor=2, micro=0, releaselevel="final", serial=0)

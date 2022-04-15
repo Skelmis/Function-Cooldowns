@@ -5,7 +5,7 @@ import functools
 import time
 from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
-from typing import Callable, Optional, TypeVar
+from typing import Callable, Optional, TypeVar, Dict
 
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import NonExistent
@@ -66,6 +66,7 @@ def cooldown(
         if not asyncio.iscoroutinefunction(func):
             raise RuntimeError("Expected `func` to be a coroutine")
 
+        _cooldown._func = func
         attached_cooldowns = getattr(func, "_cooldowns", [])
         attached_cooldowns.append(_cooldown)
         setattr(func, "_cooldowns", attached_cooldowns)
@@ -123,7 +124,11 @@ class Cooldown:
         self.last_reset_at: Optional[float] = None
         self._last_bucket: Optional[_HashableArguments] = None
 
-        self._cache: dict[_HashableArguments, CooldownTimesPer] = {}
+        self._cache: Dict[_HashableArguments, CooldownTimesPer] = {}
+
+        # How long to sleep between attempt cache clean calls
+        self._cache_clean_eagerness: int = 250
+        self._clean_task = asyncio.create_task(self._keep_buckets_clear())
 
     async def __aenter__(self) -> "Cooldown":
         bucket: CooldownTimesPer = self._get_cooldown_for_bucket(self._last_bucket)
@@ -184,6 +189,11 @@ class Cooldown:
             return _HashableArguments(**data)
 
         return _HashableArguments(data)
+
+    async def _keep_buckets_clear(self):
+        while True:
+            self.clear()
+            await asyncio.sleep(self._cache_clean_eagerness)
 
     def clear(self, bucket: Optional[_HashableArguments] = None) -> None:
         """

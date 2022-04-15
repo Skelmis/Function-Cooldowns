@@ -38,6 +38,9 @@ class CooldownTimesPer:
 
         self._next_reset: Queue[datetime.datetime] = Queue()
 
+    def __repr__(self):
+        return f"<CooldownTimesPer(limit={self.limit}, current={self.current}, time_period={self.time_period})>"
+
     async def __aenter__(self) -> "CooldownTimesPer":
         if self.current == 0:
             raise CallableOnCooldown(

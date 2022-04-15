@@ -49,7 +49,8 @@ def test_kwargs_cooldown_bucket():
     assert data == {"three": 3, "four": 4}
 
 
-def test_get_bucket():
+@pytest.mark.asyncio
+async def test_get_bucket():
     cooldown = Cooldown(1, 1)
     hashed_args = cooldown.get_bucket(1, 2, three=3, four=4)
     assert hashed_args == _HashableArguments(1, 2, three=3, four=4)
@@ -198,7 +199,8 @@ async def test_async_checks():
         await test_func(1)
 
 
-def test_cooldown_clearing():
+@pytest.mark.asyncio
+async def test_cooldown_clearing():
     cooldown: Cooldown = Cooldown(1, 1, CooldownBucket.all)
 
     assert not cooldown._cache
@@ -248,3 +250,19 @@ async def test_remaining():
     assert _cooldown.remaining_calls() == 0
     with pytest.raises(CallableOnCooldown):
         await test()
+
+
+@pytest.mark.asyncio
+async def test_bucket_cleaner():
+    # We have like 5 seconds to get this right
+    @cooldown(2, 1, CooldownBucket.all)
+    async def test():
+        pass
+
+    _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
+    _cooldown._cache_clean_eagerness = 1
+    assert not _cooldown._cache
+    await test()
+    assert _cooldown._cache
+    await asyncio.sleep(2)
+    assert not _cooldown._cache
