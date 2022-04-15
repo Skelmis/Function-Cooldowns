@@ -18,14 +18,6 @@ class BaseCooldownException(Exception):
         return self.message
 
 
-class InteractionBucketFailure(BaseCooldownException):
-    """
-    You attempted to apply an Interaction based cooldown
-    to a Callable which does not take Interaction as the
-    first parameter.
-    """
-
-
 class CallableOnCooldown(BaseCooldownException):
     """
     This :type:`Callable` is currently on cooldown.
@@ -49,3 +41,7 @@ class CallableOnCooldown(BaseCooldownException):
         self.func: Callable = func
         self.cooldown: Cooldown = cooldown
         self.retry_after: float = retry_after
+        super().__init__(
+            "This function is being rate-limited. "
+            f"Please try again in {self.retry_after} seconds."
+        )
