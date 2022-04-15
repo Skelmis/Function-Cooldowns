@@ -8,7 +8,7 @@ from logging import getLogger
 from typing import Callable, Optional, TypeVar
 
 from .cooldown_times_per import CooldownTimesPer
-from .exceptions import CallableOnCooldown, NonExistent
+from .exceptions import NonExistent
 
 from .utils import MaybeCoro, maybe_coro
 from . import CooldownBucket
@@ -113,8 +113,6 @@ class Cooldown:
             The function this cooldown is attached to
         """
         bucket = bucket or CooldownBucket.all
-        # See TimesPer for inspo, however it doesnt
-        # use that due to the required changes and flexibility
         self.limit: int = limit
         self.time_period: float = time_period
 

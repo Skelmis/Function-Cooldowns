@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import datetime
 from typing import Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -43,18 +45,26 @@ class CallableOnCooldown(BaseCooldownException):
         The :class:`Cooldown` which applies to the current cooldown
     retry_after: float
         How many seconds before you can retry the :type:`Callable`
+    resets_at: datetime.datetime
+        The exact datetime this cooldown resets.
     """
 
     def __init__(
         self,
         func: Callable,
         cooldown: Cooldown,
-        retry_after: float,
+        resets_at: datetime.datetime,
     ) -> None:
         self.func: Callable = func
         self.cooldown: Cooldown = cooldown
-        self.retry_after: float = retry_after
+        self.resets_at: datetime.datetime = resets_at
         super().__init__(
             "This function is being rate-limited. "
             f"Please try again in {self.retry_after} seconds."
         )
+
+    @property
+    def retry_after(self) -> float:
+        now = datetime.datetime.utcnow()
+        gap: datetime.timedelta = now - self.resets_at
+        return gap.seconds
