@@ -232,3 +232,19 @@ def test_cooldown_clearing():
 
     cooldown.clear()
     assert cooldown._cache
+
+
+@pytest.mark.asyncio
+async def test_remaining():
+    @cooldown(2, 1, CooldownBucket.all)
+    async def test():
+        pass
+
+    _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
+    assert _cooldown.remaining_calls() == 2
+    await test()
+    assert _cooldown.remaining_calls() == 1
+    await test()
+    assert _cooldown.remaining_calls() == 0
+    with pytest.raises(CallableOnCooldown):
+        await test()

@@ -7,7 +7,7 @@ from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
 from typing import Callable, Optional, TypeVar
 
-from .exceptions import CallableOnCooldown
+from .exceptions import CallableOnCooldown, NonExistent
 
 from .utils import MaybeCoro, maybe_coro
 from . import CooldownBucket
@@ -207,10 +207,15 @@ class Cooldown:
         self._last_bucket = self.get_bucket(*args, **kwargs)
         return self
 
-    def _get_cooldown_for_bucket(self, bucket: _HashableArguments) -> CooldownTimesPer:
+    def _get_cooldown_for_bucket(
+        self, bucket: _HashableArguments, *, raise_on_create: bool = False
+    ) -> CooldownTimesPer:
         try:
             return self._cache[bucket]
         except KeyError:
+            if raise_on_create:
+                raise NonExistent
+
             _bucket = CooldownTimesPer(self.limit, self.time_period, self)
             self._cache[bucket] = _bucket
             return _bucket
@@ -281,6 +286,35 @@ class Cooldown:
                 del self._cache[bucket]
         except KeyError:
             pass
+
+    def remaining_calls(self, *args, **kwargs) -> int:
+        """
+        Given a :type:`Callable`, return the amount of remaining
+        available calls before these arguments will result
+        in the callable being rate-limited.
+
+        Parameters
+        ----------
+        args
+        Any arguments you will pass.
+        kwargs
+            Any key-word arguments you will pass.
+
+        Returns
+        -------
+        int
+            How many more times this :type:`Callable`
+            can be called without being rate-limited.
+        """
+        bucket: _HashableArguments = self.get_bucket(*args, **kwargs)
+        try:
+            cooldown_times_per: CooldownTimesPer = self._get_cooldown_for_bucket(
+                bucket, raise_on_create=True
+            )
+        except NonExistent:
+            return self.limit
+
+        return cooldown_times_per.current
 
     def __repr__(self) -> str:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"

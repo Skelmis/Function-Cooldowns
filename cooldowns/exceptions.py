@@ -18,6 +18,19 @@ class BaseCooldownException(Exception):
         return self.message
 
 
+class NonExistent(BaseCooldownException):
+    """There doesnt already exist a bucket for this."""
+
+
+class NoRegisteredCooldowns(BaseCooldownException):
+    """
+    This :type:`Callable` has no attached cooldown's.
+    """
+
+    def __init__(self):
+        super().__init__(self.__doc__)
+
+
 class CallableOnCooldown(BaseCooldownException):
     """
     This :type:`Callable` is currently on cooldown.
