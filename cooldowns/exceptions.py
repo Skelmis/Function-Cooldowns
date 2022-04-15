@@ -66,5 +66,5 @@ class CallableOnCooldown(BaseCooldownException):
     @property
     def retry_after(self) -> float:
         now = datetime.datetime.utcnow()
-        gap: datetime.timedelta = now - self.resets_at
+        gap: datetime.timedelta = self.resets_at - now
         return gap.seconds
