@@ -4,7 +4,7 @@ from .buckets import CooldownBucket
 from .protocols import CooldownBucketProtocol
 from .cooldown import Cooldown, cooldown
 from .cooldown_times_per import CooldownTimesPer
-from .exceptions import CallableOnCooldown, NoRegisteredCooldowns
+from .exceptions import CallableOnCooldown, NoRegisteredCooldowns, UnknownBucket
 from .utils import get_remaining_calls
 
 __all__ = (
@@ -16,6 +16,7 @@ __all__ = (
     "CallableOnCooldown",
     "NoRegisteredCooldowns",
     "get_remaining_calls",
+    "UnknownBucket",
 )
 __version__ = "1.0.0"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")

@@ -24,6 +24,10 @@ class NonExistent(BaseCooldownException):
     """There doesnt already exist a bucket for this."""
 
 
+class UnknownBucket(BaseCooldownException):
+    """Failed to process the bucket."""
+
+
 class NoRegisteredCooldowns(BaseCooldownException):
     """
     This :type:`Callable` has no attached cooldown's.
