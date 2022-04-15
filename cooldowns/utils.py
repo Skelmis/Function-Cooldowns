@@ -140,3 +140,35 @@ def reset_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]):
     raise NonExistent(
         f"Cannot find a cooldown with the id '{cooldown_id}' on {func.__name__}."
     )
+
+
+def get_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]) -> Cooldown:
+    """
+    Get the :py:class:`Cooldown` object from the func
+    with the provided cooldown id.
+
+    Parameters
+    ----------
+    func: MaybeCoro
+        The func with this cooldown.
+    cooldown_id: Union[int, str]
+        The id of the cooldown we wish to get
+
+    Returns
+    -------
+    Cooldown
+        The associated cooldown
+
+    Raises
+    ------
+    NonExistent
+        Failed to find that cooldown on this func.
+    """
+    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
+    for cooldown in cooldowns:
+        if cooldown.cooldown_id == cooldown_id:
+            return cooldown
+
+    raise NonExistent(
+        f"Cannot find a cooldown with the id '{cooldown_id}' on {func.__name__}."
+    )

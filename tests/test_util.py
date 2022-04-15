@@ -1,7 +1,7 @@
 import pytest
 
 from cooldowns import cooldown, CooldownBucket, utils, Cooldown
-from cooldowns.exceptions import CallableOnCooldown, NoRegisteredCooldowns
+from cooldowns.exceptions import CallableOnCooldown, NoRegisteredCooldowns, NonExistent
 
 
 @pytest.mark.asyncio
@@ -97,3 +97,26 @@ async def test_reset_cooldown():
 
     assert _cooldown_1._cache
     assert not _cooldown_2._cache
+
+    with pytest.raises(NonExistent):
+        utils.reset_cooldown(test, 3)
+
+
+@pytest.mark.asyncio
+async def test_get_cooldown():
+    @cooldown(1, 30, CooldownBucket.args, cooldown_id=2)
+    @cooldown(1, 30, CooldownBucket.kwargs, cooldown_id=1)
+    async def test(var, *, bar):
+        pass
+
+    _cooldown_1: Cooldown = getattr(test, "_cooldowns")[0]
+    _cooldown_2: Cooldown = getattr(test, "_cooldowns")[1]
+
+    r_1 = utils.get_cooldown(test, 1)
+    assert r_1 is _cooldown_1
+
+    r_2 = utils.get_cooldown(test, 2)
+    assert r_2 is _cooldown_2
+
+    with pytest.raises(NonExistent):
+        utils.get_cooldown(test, 3)
