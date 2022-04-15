@@ -99,23 +99,3 @@ class CooldownBucket(Enum):
 
         elif self is CooldownBucket.kwargs:
             return kwargs
-
-    #     elif self is CooldownBucket.interaction_author:
-    #         # TODO Is args[0] self in classes?
-    #         inter: Interaction = self.__ensure_interaction(args[0])
-    #         return inter.user.id
-    #
-    #     elif self is CooldownBucket.interaction_channel:
-    #         inter: Interaction = self.__ensure_interaction(args[0])
-    #         return inter.channel.id
-    #
-    #     elif self is CooldownBucket.interaction_guild:
-    #         inter: Interaction = self.__ensure_interaction(args[0])
-    #         return inter.guild.id
-    #
-    # @staticmethod
-    # def __ensure_interaction(item: Optional[Interaction]) -> Interaction:
-    #     if not isinstance(item, Interaction):
-    #         raise InteractionBucketFailure
-    #
-    #     return item
