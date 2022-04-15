@@ -5,8 +5,7 @@ from cooldowns.exceptions import UnknownBucket
 
 class CooldownBucket(Enum):
     """
-    A collection of generic CooldownBucket's for usage
-    in cooldown's across nextcord.
+    A collection of generic CooldownBucket's for usage in cooldown's.
 
     Attributes
     ==========

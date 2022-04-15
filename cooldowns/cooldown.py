@@ -27,7 +27,7 @@ def cooldown(
     check: Optional[MaybeCoro] = lambda *args, **kwargs: True,
 ):
     """
-    A thing
+    Wrap this Callable in a cooldown.
 
     Parameters
     ----------
