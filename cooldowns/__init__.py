@@ -2,7 +2,8 @@ from collections import namedtuple
 
 from .buckets import CooldownBucket
 from .protocols import CooldownBucketProtocol
-from .cooldown import Cooldown, cooldown, CooldownTimesPer
+from .cooldown import Cooldown, cooldown
+from .cooldown_times_per import CooldownTimesPer
 
 __all__ = (
     "CooldownBucket",

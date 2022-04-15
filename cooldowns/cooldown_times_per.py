@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+from asyncio import get_event_loop, AbstractEventLoop
+from typing import TYPE_CHECKING
+
+from cooldowns.exceptions import CallableOnCooldown
+
+if TYPE_CHECKING:
+    from cooldowns import Cooldown
+
+
+class CooldownTimesPer:
+    # Essentially TimesPer but modified
+    # to throw Exceptions instead of queue
+    def __init__(
+        self,
+        limit: int,
+        time_period: float,
+        _cooldown: Cooldown,
+    ) -> None:
+        """
+
+        Parameters
+        ----------
+        limit: int
+            How many items are allowed
+        time_period: float
+            The period limit applies to
+        _cooldown: Cooldown
+            A backref to the parent cooldown manager.
+        """
+        self.limit: int = limit
+        self.time_period: float = time_period
+        self._cooldown: Cooldown = _cooldown
+        self.current: int = limit
+        self.loop: AbstractEventLoop = get_event_loop()
+
+    async def __aenter__(self) -> "CooldownTimesPer":
+        if self.current == 0:
+            raise CallableOnCooldown(
+                self._cooldown.func, self._cooldown, self.time_period
+            )
+
+        self.current -= 1
+
+        self.loop.call_later(self.time_period, self._reset_invoke)
+
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        ...
+
+    def _reset_invoke(self):
+        # Reset this cooldown by 'adding'
+        # one more 'possible' call since
+        # the current one is finished with it
+        if self.current < 0:
+            # Possible edge case?
+            return None
+
+        elif self.current == self.limit:
+            # Don't ever give more windows
+            # then the passed limit
+            return None
+
+        self.current += 1
+
+    @property
+    def has_cooldown(self) -> bool:
+        """
+        Is this instance currently tracking
+        any cooldowns?
+
+        If this returns False we can safely
+        delete this instance from the
+        :class:`Cooldown` lookup table.
+        """
+        return self.current != self.limit
