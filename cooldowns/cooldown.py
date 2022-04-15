@@ -137,9 +137,13 @@ class Cooldown:
 
         # How long to sleep between attempt cache clean calls
         self._cache_clean_eagerness: int = 250
-        self._clean_task = asyncio.create_task(self._keep_buckets_clear())
+        self._clean_task: Optional[asyncio.Task] = None
+        # self._clean_task = asyncio.create_task(self._keep_buckets_clear())
 
     async def __aenter__(self) -> "Cooldown":
+        if not self._clean_task:
+            self._clean_task = asyncio.create_task(self._keep_buckets_clear())
+
         bucket: CooldownTimesPer = self._get_cooldown_for_bucket(self._last_bucket)
         async with bucket:
             return self
