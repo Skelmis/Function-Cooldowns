@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import time
 from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
 from typing import Callable, Optional, TypeVar, Dict, Union
