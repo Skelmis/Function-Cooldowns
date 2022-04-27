@@ -12,7 +12,7 @@ from cooldowns import (
     shared_cooldown,
 )
 from cooldowns.buckets import _HashableArguments
-from cooldowns.exceptions import CallableOnCooldown
+from cooldowns.exceptions import CallableOnCooldown, NonExistent
 
 
 @pytest.mark.asyncio
@@ -300,3 +300,9 @@ async def test_shared_cooldowns():
 
     with pytest.raises(CallableOnCooldown):
         await test_3(1, 2)
+
+    with pytest.raises(NonExistent):
+
+        @shared_cooldown("r_2")
+        async def test_4():
+            pass
