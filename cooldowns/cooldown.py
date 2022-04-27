@@ -68,6 +68,9 @@ def cooldown(
     """
     _cooldown: Cooldown = Cooldown(limit, time_period, bucket, cooldown_id=cooldown_id)
 
+    if cooldown_id:
+        utils.shared_cooldown_refs[cooldown_id] = _cooldown
+
     def decorator(func: Callable) -> Callable:
         if not asyncio.iscoroutinefunction(func):
             raise RuntimeError("Expected `func` to be a coroutine")
@@ -205,6 +208,9 @@ class Cooldown:
         self._cache_clean_eagerness: int = 250
         self._clean_task: Optional[asyncio.Task] = None
         # self._clean_task = asyncio.create_task(self._keep_buckets_clear())
+
+        if cooldown_id:
+            utils.shared_cooldown_refs[cooldown_id] = self
 
     async def __aenter__(self) -> "Cooldown":
         if not self._clean_task:
