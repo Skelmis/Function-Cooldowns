@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 # hA! Hey you, come say hi :O
 COOLDOWN_ID = Union[int, str]
-cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
+shared_cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
 MaybeCoro = Callable[[Any, Any], Coroutine[Any, Any, Any]]
 default_check = lambda *args, **kwargs: True
 
@@ -226,7 +226,7 @@ def define_shared_cooldown(
     CooldownAlreadyExists
         A Cooldown with this ID already exists.
     """
-    if cooldown_id in cooldown_refs:
+    if cooldown_id in shared_cooldown_refs:
         raise CooldownAlreadyExists
 
     from .cooldown import Cooldown
@@ -238,4 +238,4 @@ def define_shared_cooldown(
         cooldown_id=cooldown_id,
         time_period=time_period,
     )
-    cooldown_refs[cooldown_id] = cooldown
+    shared_cooldown_refs[cooldown_id] = cooldown

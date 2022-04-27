@@ -8,6 +8,8 @@ from cooldowns import (
     CooldownBucket,
     cooldown,
     CooldownTimesPer,
+    define_shared_cooldown,
+    shared_cooldown,
 )
 from cooldowns.buckets import _HashableArguments
 from cooldowns.exceptions import CallableOnCooldown
@@ -266,3 +268,28 @@ async def test_bucket_cleaner():
     assert _cooldown._cache
     await asyncio.sleep(2)
     assert not _cooldown._cache
+
+
+@pytest.mark.asyncio
+async def test_shared_cooldowns():
+    define_shared_cooldown(1, 5, CooldownBucket.all, cooldown_id="r_1")
+
+    @shared_cooldown("r_1")
+    async def test_1(*args, **kwargs):
+        return 1
+
+    @shared_cooldown("r_1")
+    async def test_2(*args, **kwargs):
+        return 2
+
+    assert await test_1(1, 2) == 1
+    assert await test_2(2, 1) == 2
+
+    with pytest.raises(CallableOnCooldown):
+        await test_1(2, 1)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_1(1, 2)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_2(1, 2)

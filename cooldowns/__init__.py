@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from .buckets import CooldownBucket, SlashBucket
 from .protocols import CooldownBucketProtocol
-from .cooldown import Cooldown, cooldown
+from .cooldown import Cooldown, cooldown, shared_cooldown
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import (
     CallableOnCooldown,
@@ -24,6 +24,7 @@ __all__ = (
     "SlashBucket",
     "Cooldown",
     "cooldown",
+    "shared_cooldown",
     "CooldownTimesPer",
     "CooldownBucketProtocol",
     "CallableOnCooldown",

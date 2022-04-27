@@ -9,7 +9,13 @@ from typing import Callable, Optional, TypeVar, Dict, Union
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import NonExistent
 
-from .utils import MaybeCoro, maybe_coro, default_check
+from .utils import (
+    MaybeCoro,
+    maybe_coro,
+    default_check,
+    COOLDOWN_ID,
+    shared_cooldown_refs,
+)
 from . import CooldownBucket
 from .buckets import _HashableArguments
 from .protocols import CooldownBucketProtocol
@@ -25,7 +31,7 @@ def cooldown(
     bucket: CooldownBucketProtocol,
     check: Optional[MaybeCoro] = default_check,
     *,
-    cooldown_id: Optional[Union[int, str]] = None,
+    cooldown_id: Optional[COOLDOWN_ID] = None,
 ):
     """
     Wrap this Callable in a cooldown.
@@ -75,6 +81,58 @@ def cooldown(
         @functools.wraps(func)
         async def inner(*args, **kwargs):
             use_cooldown = await maybe_coro(check, *args, **kwargs)
+            if not use_cooldown:
+                return await maybe_coro(func, *args, **kwargs)
+
+            async with _cooldown(*args, **kwargs):
+                result = await func(*args, **kwargs)
+
+            return result
+
+        return inner
+
+    return decorator
+
+
+def shared_cooldown(
+    cooldown_id: Optional[COOLDOWN_ID],
+):
+    """
+    Wrap this Callable in a shared cooldown.
+
+    Parameters
+    ----------
+    cooldown_id: Optional[Union[int, str]]
+        The cooldown for the registered shared cooldown.
+
+    Raises
+    ------
+    RuntimeError
+        Expected the decorated function to be a coroutine
+    CallableOnCooldown
+        This call resulted in a cooldown being put into effect
+    NonExistent
+        Could not find a cooldown with this ID registered.
+    """
+    try:
+        _cooldown: Cooldown = shared_cooldown_refs[cooldown_id]
+    except KeyError:
+        raise NonExistent(
+            "Did you forget to define a shared cooldown with this ID? I can't find one."
+        ) from None
+
+    def decorator(func: Callable) -> Callable:
+        if not asyncio.iscoroutinefunction(func):
+            raise RuntimeError("Expected `func` to be a coroutine")
+
+        _cooldown._func = func
+        attached_cooldowns = getattr(func, "_cooldowns", [])
+        attached_cooldowns.append(_cooldown)
+        setattr(func, "_cooldowns", attached_cooldowns)
+
+        @functools.wraps(func)
+        async def inner(*args, **kwargs):
+            use_cooldown = await maybe_coro(_cooldown.check, *args, **kwargs)
             if not use_cooldown:
                 return await maybe_coro(func, *args, **kwargs)
 
