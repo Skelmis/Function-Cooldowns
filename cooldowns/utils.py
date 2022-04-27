@@ -123,14 +123,12 @@ def reset_bucket(func: MaybeCoro, *args, **kwargs):
             cooldown.clear(bucket, force_evict=True)
 
 
-def reset_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID):
+def reset_cooldown(cooldown_id: COOLDOWN_ID):
     """
     Reset the cooldown denoted by cooldown_id.
 
     Parameters
     ----------
-    func: MaybeCoro
-        The func with cooldowns we should reset.
     cooldown_id: Union[int, str]
         The id of the cooldown we wish to reset
 
@@ -139,15 +137,12 @@ def reset_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID):
     NonExistent
         Cannot find a cooldown with this id.
     """
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
-    for cooldown in cooldowns:
-        if cooldown.cooldown_id == cooldown_id:
-            cooldown.clear(force_evict=True)
-            return
-
-    raise NonExistent(
-        f"Cannot find a cooldown with the id '{cooldown_id}' on {func.__name__}."
-    )
+    try:
+        shared_cooldown_refs[cooldown_id].clear(force_evict=True)
+    except KeyError:
+        raise NonExistent(
+            f"Cannot find a cooldown with the id '{cooldown_id}'."
+        ) from None
 
 
 def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:

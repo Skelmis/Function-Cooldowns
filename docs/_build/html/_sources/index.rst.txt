@@ -12,6 +12,7 @@ Cooldowns for Coroutines, simple as that.
    modules/util.rst
    modules/buckets.rst
    modules/exceptions.rst
+   modules/examples.rst
    modules/nextcord_slash_cooldowns.rst
 
 

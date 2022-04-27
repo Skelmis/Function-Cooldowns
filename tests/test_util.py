@@ -99,13 +99,13 @@ async def test_reset_cooldown():
     assert _cooldown_1._cache
     assert _cooldown_2._cache
 
-    utils.reset_cooldown(test, 2)
+    utils.reset_cooldown(2)
 
     assert _cooldown_1._cache
     assert not _cooldown_2._cache
 
     with pytest.raises(NonExistent):
-        utils.reset_cooldown(test, 3)
+        utils.reset_cooldown(3)
 
 
 @pytest.mark.asyncio
