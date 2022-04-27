@@ -4,13 +4,19 @@ from .buckets import CooldownBucket, SlashBucket
 from .protocols import CooldownBucketProtocol
 from .cooldown import Cooldown, cooldown
 from .cooldown_times_per import CooldownTimesPer
-from .exceptions import CallableOnCooldown, NoRegisteredCooldowns, UnknownBucket
+from .exceptions import (
+    CallableOnCooldown,
+    NoRegisteredCooldowns,
+    UnknownBucket,
+    CooldownAlreadyExists,
+)
 from .utils import (
     get_remaining_calls,
     reset_cooldown,
     reset_cooldowns,
     reset_bucket,
     get_cooldown,
+    define_shared_cooldown,
 )
 
 __all__ = (
@@ -22,12 +28,14 @@ __all__ = (
     "CooldownBucketProtocol",
     "CallableOnCooldown",
     "NoRegisteredCooldowns",
+    "CooldownAlreadyExists",
     "get_remaining_calls",
     "UnknownBucket",
     "reset_cooldowns",
     "reset_bucket",
     "reset_cooldown",
     "get_cooldown",
+    "define_shared_cooldown",
 )
 __version__ = "1.2.5"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")

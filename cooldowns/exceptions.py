@@ -24,6 +24,10 @@ class NonExistent(BaseCooldownException):
     """There doesnt already exist a bucket for this."""
 
 
+class CooldownAlreadyExists(BaseCooldownException):
+    """A Cooldown with this ID already exists."""
+
+
 class UnknownBucket(BaseCooldownException):
     """Failed to process the bucket."""
 

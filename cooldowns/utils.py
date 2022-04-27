@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable, Any, Coroutine, List, TYPE_CHECKING, Union
+from typing import Callable, Any, Coroutine, List, TYPE_CHECKING, Union, Dict, Optional
 
-from cooldowns.exceptions import NoRegisteredCooldowns, NonExistent
+from cooldowns.exceptions import (
+    NoRegisteredCooldowns,
+    NonExistent,
+    CooldownAlreadyExists,
+)
 
 if TYPE_CHECKING:
-    from cooldowns import Cooldown, CooldownBucket, CooldownTimesPer
+    from cooldowns import Cooldown, CooldownBucketProtocol
 
+# hA! Hey you, come say hi :O
+COOLDOWN_ID = Union[int, str]
+cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
 MaybeCoro = Callable[[Any, Any], Coroutine[Any, Any, Any]]
+default_check = lambda *args, **kwargs: True
 
 
 async def maybe_coro(func: MaybeCoro, *args, **kwargs):
@@ -115,7 +123,7 @@ def reset_bucket(func: MaybeCoro, *args, **kwargs):
             cooldown.clear(bucket, force_evict=True)
 
 
-def reset_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]):
+def reset_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID):
     """
     Reset the cooldown denoted by cooldown_id.
 
@@ -142,7 +150,7 @@ def reset_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]):
     )
 
 
-def get_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]) -> Cooldown:
+def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
     """
     Get the :py:class:`Cooldown` object from the func
     with the provided cooldown id.
@@ -172,3 +180,62 @@ def get_cooldown(func: MaybeCoro, cooldown_id: Union[int, str]) -> Cooldown:
     raise NonExistent(
         f"Cannot find a cooldown with the id '{cooldown_id}' on {func.__name__}."
     )
+
+
+def define_shared_cooldown(
+    limit: int,
+    time_period: float,
+    bucket: CooldownBucketProtocol,
+    cooldown_id: COOLDOWN_ID,
+    *,
+    check: Optional[MaybeCoro] = default_check,
+):
+    """
+    Define a global cooldown which can be used to ratelimit
+    1 or more callables under the same situations.
+
+    View the examples for how to use this.
+
+    Parameters
+    ----------
+    limit: int
+        How many call's can be made in the time
+        period specified by ``time_period``
+    time_period: float
+        The time period related to ``limit``
+    bucket: CooldownBucketProtocol
+        The :class:`Bucket` implementation to use
+        as a bucket to separate cooldown buckets.
+    cooldown_id: Union[int, str]
+        The ID used to refer to this when defining a shared_cooldown
+
+        This should be unique globally,
+        behaviour is not guaranteed if not unique.
+    check: Optional[MaybeCoro]
+        A Callable which dictates whether or not
+        to apply the cooldown on current invoke.
+
+        If this Callable returns a truthy value,
+        then the cooldown will be used for the current call.
+
+        I.e. If you wished to bypass cooldowns, you
+        would return False if you invoked the Callable.
+
+    Raises
+    ------
+    CooldownAlreadyExists
+        A Cooldown with this ID already exists.
+    """
+    if cooldown_id in cooldown_refs:
+        raise CooldownAlreadyExists
+
+    from .cooldown import Cooldown
+
+    cooldown: Cooldown = Cooldown(
+        check=check,
+        limit=limit,
+        bucket=bucket,
+        cooldown_id=cooldown_id,
+        time_period=time_period,
+    )
+    cooldown_refs[cooldown_id] = cooldown

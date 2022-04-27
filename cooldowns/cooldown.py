@@ -9,7 +9,7 @@ from typing import Callable, Optional, TypeVar, Dict, Union
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import NonExistent
 
-from .utils import MaybeCoro, maybe_coro
+from .utils import MaybeCoro, maybe_coro, default_check
 from . import CooldownBucket
 from .buckets import _HashableArguments
 from .protocols import CooldownBucketProtocol
@@ -23,7 +23,7 @@ def cooldown(
     limit: int,
     time_period: float,
     bucket: CooldownBucketProtocol,
-    check: Optional[MaybeCoro] = lambda *args, **kwargs: True,
+    check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[Union[int, str]] = None,
 ):
@@ -53,7 +53,6 @@ def cooldown(
         Useful for resetting individual stacked cooldowns.
         This should be unique globally,
         behaviour is not guaranteed if not unique.
-
 
     Raises
     ------
@@ -100,6 +99,7 @@ class Cooldown:
         func: Optional[Callable] = None,
         *,
         cooldown_id: Optional[Union[int, str]] = None,
+        check: Optional[MaybeCoro] = default_check,
     ) -> None:
         """
         Parameters
@@ -120,10 +120,20 @@ class Cooldown:
             Useful for resetting individual stacked cooldowns.
             This should be unique globally,
             behaviour is not guaranteed if not unique.
+
+        Other Parameters
+        ----------------
+        check: Optional[MaybeCoro]
+            The check used to validate calls to this Cooldown.
+
+            This is not used here, however, its required as an
+            implementation detail for shared cooldowns and can
+            be safely ignored as a parameter.
         """
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
         self.time_period: float = time_period
+        self.check: Optional[MaybeCoro] = check
         self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
         self._func: Optional[Callable] = func
