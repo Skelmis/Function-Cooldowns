@@ -14,9 +14,8 @@ from .utils import (
     maybe_coro,
     default_check,
     COOLDOWN_ID,
-    shared_cooldown_refs,
 )
-from . import CooldownBucket
+from . import CooldownBucket, utils
 from .buckets import _HashableArguments
 from .protocols import CooldownBucketProtocol
 
@@ -115,7 +114,7 @@ def shared_cooldown(
         Could not find a cooldown with this ID registered.
     """
     try:
-        _cooldown: Cooldown = shared_cooldown_refs[cooldown_id]
+        _cooldown: Cooldown = utils.shared_cooldown_refs[cooldown_id]
     except KeyError:
         raise NonExistent(
             "Did you forget to define a shared cooldown with this ID? I can't find one."

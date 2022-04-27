@@ -293,3 +293,10 @@ async def test_shared_cooldowns():
 
     with pytest.raises(CallableOnCooldown):
         await test_2(1, 2)
+
+    @shared_cooldown("r_1")
+    async def test_3(*args, **kwargs):
+        return 3
+
+    with pytest.raises(CallableOnCooldown):
+        await test_3(1, 2)
