@@ -7,17 +7,19 @@ class CooldownBucket(Enum):
     """
     A collection of generic CooldownBucket's for usage in cooldown's.
 
+    See :py:class:`cooldowns.protocols.bucket.CooldownBucketProtocol`
+
     Attributes
     ==========
     all
         The buckets are defined using all
-        arguments passed to the :type:`Callable`
+        arguments passed to the `Callable`
     args
         The buckets are defined using all
-        non-keyword arguments passed to the :type:`Callable`
+        non-keyword arguments passed to the `Callable`
     kwargs
         The buckets are defined using all
-        keyword arguments passed to the :type:`Callable`
+        keyword arguments passed to the `Callable`
     """
 
     all = 0

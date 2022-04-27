@@ -34,7 +34,7 @@ class UnknownBucket(BaseCooldownException):
 
 class NoRegisteredCooldowns(BaseCooldownException):
     """
-    This :type:`Callable` has no attached cooldown's.
+    This `Callable` has no attached cooldown's.
     """
 
     def __init__(self):
@@ -43,16 +43,14 @@ class NoRegisteredCooldowns(BaseCooldownException):
 
 class CallableOnCooldown(BaseCooldownException):
     """
-    This :type:`Callable` is currently on cooldown.
+    This `Callable` is currently on cooldown.
 
     Attributes
     ==========
     func: Callable
-        The :type:`Callable` which is currently rate-limited
+        The `Callable` which is currently rate-limited
     cooldown: Cooldown
         The :class:`Cooldown` which applies to the current cooldown
-    retry_after: float
-        How many seconds before you can retry the :type:`Callable`
     resets_at: datetime.datetime
         The exact datetime this cooldown resets.
     """
@@ -73,6 +71,7 @@ class CallableOnCooldown(BaseCooldownException):
 
     @property
     def retry_after(self) -> float:
+        """How many seconds before you can retry the `Callable`"""
         now = datetime.datetime.utcnow()
         gap: datetime.timedelta = self.resets_at - now
         return gap.seconds

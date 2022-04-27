@@ -37,14 +37,14 @@ def _get_cooldowns_or_raise(func: MaybeCoro) -> List[Cooldown]:
 
 def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
     """
-    Given a :type:`Callable`, return the amount of remaining
+    Given a `Callable`, return the amount of remaining
     available calls before these arguments will result
     in the callable being rate-limited.
 
     Parameters
     ----------
     func: MaybeCoro
-        The :type:`Callable` you want to check.
+        The `Callable` you want to check.
     args
         Any arguments you will pass.
     kwargs
@@ -53,13 +53,13 @@ def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
     Returns
     -------
     int
-        How many more times this :type:`Callable`
+        How many more times this `Callable`
         can be called without being rate-limited.
 
     Raises
     ------
     NoRegisteredCooldowns
-        The given :type:`Callable` has no cooldowns.
+        The given `Callable` has no cooldowns.
 
     Notes
     -----
@@ -76,7 +76,7 @@ def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
 
 def reset_cooldowns(func: MaybeCoro):
     """
-    Reset all cooldown's on this :type:`Callable`
+    Reset all cooldown's on this `Callable`
     back to default settings.
 
 

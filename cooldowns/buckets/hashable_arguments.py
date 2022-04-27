@@ -2,6 +2,8 @@ import math
 
 
 class _HashableArguments:
+    """An implementation class, you don't need to create these yourself."""
+
     # An internal class defined such that we can
     # use *args and **kwargs as keys. We need to
     # do this as mutable items are not hashable,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from asyncio import get_event_loop, AbstractEventLoop, Queue, QueueEmpty
+from asyncio import get_event_loop, AbstractEventLoop, Queue
 from typing import TYPE_CHECKING, Optional
 
 from cooldowns.exceptions import CallableOnCooldown

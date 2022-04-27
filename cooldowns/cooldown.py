@@ -102,6 +102,8 @@ def shared_cooldown(
     """
     Wrap this Callable in a shared cooldown.
 
+    Use :py:meth:`define_shared_cooldown` before this.
+
     Parameters
     ----------
     cooldown_id: Optional[Union[int, str]]
@@ -299,7 +301,7 @@ class Cooldown:
 
         Notes
         -----
-        You can get :class:`_HashableArguments` by
+        You can get :py:class:`_HashableArguments` by
         using the :meth:`Cooldown.get_bucket` method.
         """
         if not bucket:
@@ -350,8 +352,10 @@ class Cooldown:
 
     @property
     def bucket(self) -> CooldownBucketProtocol:
+        """Returns the underlying bucket to process cooldowns against."""
         return self._bucket
 
     @property
     def func(self) -> Optional[Callable]:
+        """Returns the wrapped function."""
         return self._func
