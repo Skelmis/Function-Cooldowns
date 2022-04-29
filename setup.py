@@ -31,7 +31,11 @@ setup(
     description="A simplistic decorator based approach to rate limiting function calls.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    project_urls={},
+    project_urls={
+        "Issue tracker": "https://github.com/Skelmis/Function-Cooldowns/issues",
+        "Documentation": "https://function-cooldowns.readthedocs.io/en/latest/",
+        "Homepage": "https://github.com/Skelmis/Function-Cooldowns",
+    },
     packages=find_packages(include=("cooldowns", "cooldowns.*")),
     install_requires=[],
     classifiers=[
