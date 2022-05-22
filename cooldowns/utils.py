@@ -14,9 +14,13 @@ if TYPE_CHECKING:
 
 # hA! Hey you, come say hi :O
 COOLDOWN_ID = Union[int, str]
+# A 'global state' of sorts
 shared_cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
 MaybeCoro = Callable[[Any, Any], Coroutine[Any, Any, Any]]
-default_check = lambda *args, **kwargs: True
+
+
+def default_check(*args, **kwargs):
+    return True
 
 
 async def maybe_coro(func: MaybeCoro, *args, **kwargs):

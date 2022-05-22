@@ -195,12 +195,11 @@ class Cooldown:
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
         self.time_period: float = time_period
-        self.check: Optional[MaybeCoro] = check
+        self.check: MaybeCoro = check
         self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
         self._func: Optional[Callable] = func
         self._bucket: CooldownBucketProtocol = bucket
-        self.loop: AbstractEventLoop = get_event_loop()
         self.pending_reset: bool = False
         self._last_bucket: Optional[_HashableArguments] = None
 

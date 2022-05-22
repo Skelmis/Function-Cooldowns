@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import datetime
+import pickle
 from asyncio import get_event_loop, AbstractEventLoop, Queue
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict, TypeVar, TypedDict
 
 from cooldowns.exceptions import CallableOnCooldown
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown
+
+
+class CTPDict(TypedDict):
+    limit: int
+    time_period: float
+    current: int
+    next_reset: str  # Pickled Queue
 
 
 class CooldownTimesPer:
@@ -40,6 +48,14 @@ class CooldownTimesPer:
 
     def __repr__(self):
         return f"<CooldownTimesPer(limit={self.limit}, current={self.current}, time_period={self.time_period})>"
+
+    def __getstate__(self) -> CTPDict:
+        return {
+            "limit": self.limit,
+            "time_period": self.time_period,
+            "current": self.current,
+            # "next_reset": pickle.dumps(self._next_reset, 0).decode(),
+        }
 
     async def __aenter__(self) -> "CooldownTimesPer":
         if self.current == 0:
