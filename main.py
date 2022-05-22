@@ -38,3 +38,4 @@ load_cooldown_state(load_to, state)
 
 # Also need a way to handle the call_laters
 # such that they queue gets de-populated correctly on load
+# In theory can clear all items from queue older then utcnow() + time_period
