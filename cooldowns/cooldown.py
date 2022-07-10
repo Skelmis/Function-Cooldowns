@@ -92,8 +92,16 @@ def cooldown(
             if not use_cooldown:
                 return await maybe_coro(func, *args, **kwargs)
 
+            self_arg = None
+            if "self" in kwargs:
+                self_arg = kwargs.pop("self")
+
             async with _cooldown(*args, **kwargs):
-                result = await func(*args, **kwargs)
+                if self_arg:
+                    kwargs["self"] = self_arg
+                    result = await func(*args, **kwargs)
+                else:
+                    result = await func(*args, **kwargs)
 
             return result
 
