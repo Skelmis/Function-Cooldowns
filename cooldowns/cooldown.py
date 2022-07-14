@@ -54,6 +54,12 @@ def cooldown(
 
         I.e. If you wished to bypass cooldowns, you
         would return False if you invoked the Callable.
+
+        .. note::
+
+            This check will be given the same arguments as
+            the item you are applying the cooldown to.
+
     cooldown_id: Optional[Union[int, str]]
         Useful for resetting individual stacked cooldowns.
         This should be unique globally,
@@ -89,8 +95,16 @@ def cooldown(
             if not use_cooldown:
                 return await maybe_coro(func, *args, **kwargs)
 
+            self_arg = None
+            if "self" in kwargs:
+                self_arg = kwargs.pop("self")
+
             async with _cooldown(*args, **kwargs):
-                result = await func(*args, **kwargs)
+                if self_arg:
+                    kwargs["self"] = self_arg
+                    result = await func(*args, **kwargs)
+                else:
+                    result = await func(*args, **kwargs)
 
             return result
 
@@ -194,6 +208,11 @@ class Cooldown:
             This is not used here, however, its required as an
             implementation detail for shared cooldowns and can
             be safely ignored as a parameter.
+
+            .. note::
+
+                This check will be given the same arguments as
+                the item you are applying the cooldown to.
         """
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
