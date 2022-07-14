@@ -255,7 +255,7 @@ How to use the Cooldown object without a decorator.
 
     cooldown = Cooldown(1, 5, CooldownBucket.args)
 
-    async with cooldown:
+    async with cooldown(*args, **kwargs):
         # This will apply the cooldown
         ...
         # Do things
