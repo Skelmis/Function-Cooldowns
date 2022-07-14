@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
 from typing import Callable, Optional, TypeVar, Dict, Union
 
 from .cooldown_times_per import CooldownTimesPer
+from .persistence import State, _pickle_cooldown, _unpickle_cooldown
 from .exceptions import NonExistent
 
 from .utils import (
@@ -348,6 +348,32 @@ class Cooldown:
             return self.limit
 
         return cooldown_times_per.current
+
+    def get_state(self) -> State:
+        """Return the state of this cooldown as a dictionary
+        in order to be able to persist it.
+
+        Returns
+        -------
+        State
+            This cooldown as a dictionary
+        """
+        return _pickle_cooldown(self)
+
+    def load_from_state(self, state: State) -> None:
+        """Load this cooldown as per `state`
+
+        Parameters
+        ----------
+        state: State
+            The state you wish to set this cooldown to
+
+        Notes
+        -----
+        state should be the output of :py:meth:`Cooldown.get_state`
+        and remain unmodified in order for this operation to work.
+        """
+        _unpickle_cooldown(self, state)
 
     def __repr__(self) -> str:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"

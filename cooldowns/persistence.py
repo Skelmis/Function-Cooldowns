@@ -1,64 +1,94 @@
-import asyncio
+from __future__ import annotations
+
 import pickle
 import typing
-from copy import deepcopy
-from typing import TypedDict, Dict, List, Union, Optional
+from asyncio import Queue
+import datetime
+from typing import TypedDict, Union, Optional, Dict, List
 
-from cooldowns import Cooldown, CooldownBucketProtocol
-from cooldowns.utils import MaybeCoro, COOLDOWN_ID, _get_cooldowns_or_raise
+if typing.TYPE_CHECKING:
+    from cooldowns import Cooldown, CooldownTimesPer
+
+
+class CTPState(TypedDict):
+    limit: int
+    time_period: float
+    current: int
+    next_reset: List[float]  # List of epoch timestamps
 
 
 class State(TypedDict):
     limit: int
     time_period: float
-    check: str  # Pickled callable
-    bucket: str  # Pickled CooldownBucketProtocol
-    pending_reset: bool
-    last_bucket: Optional[str]  # Pickled _HashableArguments
-    cache: str  # Pickled Dict[_HashableArguments, CooldownTimesPer]
     cooldown_id: Optional[Union[int, str]]
+    pending_reset: bool
+    cache: Dict[str, CTPState]
 
 
 def _pickle_cooldown(cooldown: Cooldown) -> State:
+    cache: Dict[str, CTPState] = {}
+    for k, v in cooldown._cache.items():
+        next_reset: List[float] = []
+        new_queue: Queue = Queue()
+        while not v._next_reset.empty():
+            item = v._next_reset.get_nowait()
+            next_reset.append(item.timestamp())
+            new_queue.put_nowait(item)
+
+        v._next_reset = new_queue
+
+        cache[pickle.dumps(k, 0).decode()] = CTPState(
+            limit=v.limit,
+            time_period=v.time_period,
+            current=v.current,
+            next_reset=next_reset,
+        )
+
     state: State = {
         "limit": cooldown.limit,
         "time_period": cooldown.time_period,
-        "check": pickle.dumps(cooldown.check, 0).decode(),
-        "cooldown_id": cooldown.cooldown_id,
-        "bucket": pickle.dumps(cooldown._bucket, 0).decode(),
         "pending_reset": cooldown.pending_reset,
-        "last_bucket": pickle.dumps(cooldown._last_bucket, 0).decode(),
-        "cache": pickle.dumps(cooldown._cache, 0).decode(),
+        "cooldown_id": cooldown.cooldown_id,
+        "cache": cache,
     }
-
     return state
 
 
-def get_cooldown_state(func: MaybeCoro) -> List[State]:
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
-    states: List[State] = []
-    for cooldown in cooldowns:
-        states.append(_pickle_cooldown(cooldown))
-
-    return states
+def _check_expired(time: datetime.datetime) -> bool:
+    """Returns `True` if in the past, `False` otherwise"""
+    return datetime.datetime.utcnow() > time
 
 
-def load_cooldown_state(func: MaybeCoro, states: List[State]) -> None:
-    cooldowns: List[Cooldown] = []
-    for state in states:
-        state = typing.cast(State, state)
-        print(type(state))
-        unpick: Dict = pickle.loads(state["cache"].encode())
-        print(list(unpick.values())[0])
-        break
+def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
+    from cooldowns import CooldownTimesPer
 
+    cooldown.limit = state["limit"]
+    cooldown.cooldown_id = state["cooldown_id"]
+    cooldown.time_period = state["time_period"]
+    cooldown.pending_reset = state["pending_reset"]
 
-def get_global_state() -> Dict[COOLDOWN_ID, State]:
-    pass
+    cache = {}
+    for k, v in state["cache"].items():
+        v = typing.cast(CTPState, v)
+        hashable_arguments = pickle.loads(k.encode())
+        cooldown_times_per = CooldownTimesPer(
+            limit=v["limit"],
+            time_period=v["time_period"],
+            _cooldown=cooldown,
+        )
+        cooldown_times_per.current = v["current"]
 
+        for epoch in v["next_reset"]:
+            epoch_time = datetime.datetime.fromtimestamp(
+                epoch,  # tz=datetime.timezone.utc
+            )
+            if _check_expired(epoch_time):
+                # No longer relevant
+                cooldown_times_per.current += 1
+                continue
 
-def load_global_state(
-    func_mappings: Dict[COOLDOWN_ID, MaybeCoro],
-    data: Dict[COOLDOWN_ID, State],
-) -> None:
-    pass
+            cooldown_times_per._next_reset.put_nowait(epoch_time)
+
+        cache[hashable_arguments] = cooldown_times_per
+
+    cooldown._cache = cache

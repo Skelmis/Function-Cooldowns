@@ -18,7 +18,6 @@ from .utils import (
     get_cooldown,
     define_shared_cooldown,
 )
-from .persistence import get_cooldown_state, load_cooldown_state
 
 __all__ = (
     "CooldownBucket",
@@ -38,8 +37,6 @@ __all__ = (
     "reset_cooldown",
     "get_cooldown",
     "define_shared_cooldown",
-    "get_cooldown_state",
-    "load_cooldown_state",
 )
 __version__ = "1.3.3"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
