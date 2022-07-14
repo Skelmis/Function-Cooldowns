@@ -181,6 +181,30 @@ def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
     )
 
 
+def get_all_cooldowns(
+    func: MaybeCoro,
+) -> List[Cooldown]:
+    """
+    Get all the :py:class:`Cooldown` objects from the func provided.
+
+    Parameters
+    ----------
+    func: MaybeCoro
+        The func with this cooldown.
+
+    Returns
+    -------
+    List[Cooldown]
+        The associated cooldowns
+
+    Raises
+    ------
+    NoRegisteredCooldowns
+        No cooldowns on this func
+    """
+    return _get_cooldowns_or_raise(func)
+
+
 def define_shared_cooldown(
     limit: int,
     time_period: float,
