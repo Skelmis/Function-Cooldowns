@@ -74,8 +74,8 @@ def cooldown(
     def decorator(func: Callable) -> Callable:
         if not asyncio.iscoroutinefunction(func):
             raise RuntimeError(
-                f"Expected `{func.__name__}` to be a coroutine, "
-                f"found {func.__class__.__name__!r} instead"  # noqa
+                f"Expected `func` to be a coroutine, "
+                f"found {func} of type {func.__class__.__name__!r} instead"  # noqa
             )
 
         _cooldown._func = func
