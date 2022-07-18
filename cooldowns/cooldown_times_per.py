@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import datetime
+import pickle
 from asyncio import get_event_loop, AbstractEventLoop, Queue
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict, TypeVar, TypedDict
 
 from cooldowns.exceptions import CallableOnCooldown
 
@@ -65,7 +66,7 @@ class CooldownTimesPer:
 
         Returns
         -------
-        Optional[float]
+        Optional[datetime.datetime]
             When the next window is freed.
 
             None if there are no windows.

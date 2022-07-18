@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from asyncio.events import AbstractEventLoop, get_event_loop
 from logging import getLogger
 from typing import Callable, Optional, TypeVar, Dict, Union
 
 from .cooldown_times_per import CooldownTimesPer
+from .persistence import State, _pickle_cooldown, _unpickle_cooldown
 from .exceptions import NonExistent
 
 from .utils import (
@@ -79,7 +79,10 @@ def cooldown(
 
     def decorator(func: Callable) -> Callable:
         if not asyncio.iscoroutinefunction(func):
-            raise RuntimeError("Expected `func` to be a coroutine")
+            raise RuntimeError(
+                f"Expected `func` to be a coroutine, "
+                f"found {func} of type {func.__class__.__name__!r} instead"  # noqa
+            )
 
         _cooldown._func = func
         attached_cooldowns = getattr(func, "_cooldowns", [])
@@ -214,12 +217,11 @@ class Cooldown:
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
         self.time_period: float = time_period
-        self.check: Optional[MaybeCoro] = check
+        self.check: MaybeCoro = check
         self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
         self._func: Optional[Callable] = func
         self._bucket: CooldownBucketProtocol = bucket
-        self.loop: AbstractEventLoop = get_event_loop()
         self.pending_reset: bool = False
         self._last_bucket: Optional[_HashableArguments] = None
 
@@ -325,8 +327,13 @@ class Cooldown:
         """
         if not bucket:
             # Reset all buckets
-            for bucket in list(self._cache.keys()):
-                self.clear(bucket, force_evict=force_evict)
+            for bucket_key in list(self._cache.keys()):
+                if bucket_key is None:
+                    # This shouldn't be None..
+                    self._cache.pop(bucket_key, None)  # type: ignore
+                    continue
+
+                self.clear(bucket_key, force_evict=force_evict)
 
         try:
             # Evict item from cache only if it
@@ -365,6 +372,32 @@ class Cooldown:
             return self.limit
 
         return cooldown_times_per.current
+
+    def get_state(self) -> State:
+        """Return the state of this cooldown as a dictionary
+        in order to be able to persist it.
+
+        Returns
+        -------
+        State
+            This cooldown as a dictionary
+        """
+        return _pickle_cooldown(self)
+
+    def load_from_state(self, state: State) -> None:
+        """Load this cooldown as per `state`
+
+        Parameters
+        ----------
+        state: State
+            The state you wish to set this cooldown to
+
+        Notes
+        -----
+        state should be the output of :py:meth:`Cooldown.get_state`
+        and remain unmodified in order for this operation to work.
+        """
+        _unpickle_cooldown(self, state)
 
     def __repr__(self) -> str:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"

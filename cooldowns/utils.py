@@ -14,9 +14,13 @@ if TYPE_CHECKING:
 
 # hA! Hey you, come say hi :O
 COOLDOWN_ID = Union[int, str]
+# A 'global state' of sorts
 shared_cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
 MaybeCoro = Callable[[Any, Any], Coroutine[Any, Any, Any]]
-default_check = lambda *args, **kwargs: True
+
+
+def default_check(*args, **kwargs):
+    return True
 
 
 async def maybe_coro(func: MaybeCoro, *args, **kwargs):
@@ -175,6 +179,30 @@ def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
     raise NonExistent(
         f"Cannot find a cooldown with the id '{cooldown_id}' on {func.__name__}."
     )
+
+
+def get_all_cooldowns(
+    func: MaybeCoro,
+) -> List[Cooldown]:
+    """
+    Get all the :py:class:`Cooldown` objects from the func provided.
+
+    Parameters
+    ----------
+    func: MaybeCoro
+        The func with this cooldown.
+
+    Returns
+    -------
+    List[Cooldown]
+        The associated cooldowns
+
+    Raises
+    ------
+    NoRegisteredCooldowns
+        No cooldowns on this func
+    """
+    return _get_cooldowns_or_raise(func)
 
 
 def define_shared_cooldown(
