@@ -46,7 +46,7 @@ def cooldown(
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
     check: Optional[MaybeCoro]
-        A Callable which dictates whether or not
+        A Callable which dictates whether
         to apply the cooldown on current invoke.
 
         If this Callable returns a truthy value,
