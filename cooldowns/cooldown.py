@@ -41,7 +41,7 @@ def cooldown(
         How many call's can be made in the time
         period specified by ``time_period``
     time_period: float
-        The time period related to ``limit``
+        The time period related to ``limit``. This is seconds.
     bucket: CooldownBucketProtocol
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
@@ -187,7 +187,7 @@ class Cooldown:
             How many call's can be made in the time
             period specified by ``time_period``
         time_period: float
-            The time period related to ``limit``
+            The time period related to ``limit``. This is seconds.
         bucket: Optional[CooldownBucketProtocol]
             The :class:`Bucket` implementation to use
             as a bucket to separate cooldown buckets.
