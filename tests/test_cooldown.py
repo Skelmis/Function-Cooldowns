@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from enum import Enum
 
 import pytest
@@ -306,3 +307,19 @@ async def test_shared_cooldowns():
         @shared_cooldown("r_2")
         async def test_4():
             pass
+
+
+@pytest.mark.asyncio
+async def test_timedelta_support():
+    @cooldown(2, datetime.timedelta(days=1), CooldownBucket.all)
+    async def test():
+        pass
+
+    _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
+    assert _cooldown.remaining_calls() == 2
+    await test()
+    assert _cooldown.remaining_calls() == 1
+    await test()
+    assert _cooldown.remaining_calls() == 0
+    with pytest.raises(CallableOnCooldown):
+        await test()
