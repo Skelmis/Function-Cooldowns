@@ -65,3 +65,32 @@ async def test_expired_epochs():
         # by now don't count towards the total
         assert v["current"] == v["limit"]
         assert len(v["next_reset"]) == 0
+
+
+@pytest.mark.asyncio
+async def test_loading():
+    @cooldown(1, 15, CooldownBucket.args, cooldown_id=2)
+    @cooldown(1, 30, CooldownBucket.kwargs, cooldown_id=1)
+    async def test(var, *, bar=None):
+        pass
+
+    _cooldown_1: Cooldown = getattr(test, "_cooldowns")[0]
+    saved_state = {
+        "limit": 2,
+        "time_period": 70,
+        "pending_reset": True,
+        "cooldown_id": 1,
+        "cache": {},
+    }
+
+    assert _cooldown_1.limit == 1
+    assert _cooldown_1.time_period == 30
+    assert _cooldown_1.pending_reset is False
+    assert _cooldown_1.cooldown_id == 1
+
+    _cooldown_1.load_from_state(saved_state)
+
+    assert _cooldown_1.limit == 2
+    assert _cooldown_1.time_period == 70
+    assert _cooldown_1.pending_reset is True
+    assert _cooldown_1.cooldown_id == 1

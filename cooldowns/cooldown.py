@@ -47,7 +47,7 @@ def cooldown(
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
     check: Optional[MaybeCoro]
-        A Callable which dictates whether or not
+        A Callable which dictates whether
         to apply the cooldown on current invoke.
 
         If this Callable returns a truthy value,
@@ -332,8 +332,13 @@ class Cooldown:
         """
         if not bucket:
             # Reset all buckets
-            for bucket in list(self._cache.keys()):
-                self.clear(bucket, force_evict=force_evict)
+            for bucket_key in list(self._cache.keys()):
+                if bucket_key is None:
+                    # This shouldn't be None..
+                    self._cache.pop(bucket_key, None)  # type: ignore
+                    continue
+
+                self.clear(bucket_key, force_evict=force_evict)
 
         try:
             # Evict item from cache only if it
