@@ -29,6 +29,8 @@ async def ping(interaction: nextcord.Interaction):
 
 #### For documentation, please see [here](https://function-cooldowns.readthedocs.io/en/latest/).
 
+#### This implements the [leaky bucket](https://en.wikipedia.org/wiki/Leaky_bucket) algorithm
+
 ---
 
 ### Support
