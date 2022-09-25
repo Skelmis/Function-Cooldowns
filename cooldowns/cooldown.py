@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import functools
 from logging import getLogger
 from typing import Callable, Optional, TypeVar, Dict, Union
@@ -26,7 +27,7 @@ T = TypeVar("T", bound=_HashableArguments)
 
 def cooldown(
     limit: int,
-    time_period: float,
+    time_period: Union[float, datetime.timedelta],
     bucket: CooldownBucketProtocol,
     check: Optional[MaybeCoro] = default_check,
     *,
@@ -40,8 +41,8 @@ def cooldown(
     limit: int
         How many call's can be made in the time
         period specified by ``time_period``
-    time_period: float
-        The time period related to ``limit``
+    time_period: Union[float, datetime.timedelta]
+        The time period related to ``limit``. This is seconds.
     bucket: CooldownBucketProtocol
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
@@ -173,7 +174,7 @@ class Cooldown:
     def __init__(
         self,
         limit: int,
-        time_period: float,
+        time_period: Union[float, datetime.timedelta],
         bucket: Optional[CooldownBucketProtocol] = None,
         func: Optional[Callable] = None,
         *,
@@ -186,8 +187,8 @@ class Cooldown:
         limit: int
             How many call's can be made in the time
             period specified by ``time_period``
-        time_period: float
-            The time period related to ``limit``
+        time_period: Union[float, datetime.timedelta]
+            The time period related to ``limit``. This is seconds.
         bucket: Optional[CooldownBucketProtocol]
             The :class:`Bucket` implementation to use
             as a bucket to separate cooldown buckets.
@@ -216,7 +217,11 @@ class Cooldown:
         """
         bucket = bucket or CooldownBucket.all
         self.limit: int = limit
-        self.time_period: float = time_period
+        self.time_period: float = (
+            time_period
+            if isinstance(time_period, (float, int))
+            else time_period.total_seconds()
+        )
         self.check: MaybeCoro = check
         self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
