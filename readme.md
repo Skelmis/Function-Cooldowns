@@ -3,6 +3,8 @@ Function Cooldowns
 
 A simplistic take on functional cooldowns. 
 
+`pip install function-cooldowns`
+
 
 ---
 
