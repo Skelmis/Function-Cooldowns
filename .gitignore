@@ -3,3 +3,5 @@ venv
 dist
 function_cooldowns.egg-info
 build
+docs/_build
+docs/_static

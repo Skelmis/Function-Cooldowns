@@ -23,6 +23,7 @@ Cooldowns for Coroutines, simple as that.
 
    modules/objects/util.rst
    modules/objects/cooldown.rst
+   modules/objects/cooldown_times_per.rst
    modules/objects/protocols.rst
    modules/objects/hashable_args.rst
 

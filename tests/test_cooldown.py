@@ -323,3 +323,16 @@ async def test_timedelta_support():
     assert _cooldown.remaining_calls() == 0
     with pytest.raises(CallableOnCooldown):
         await test()
+
+
+@pytest.mark.asyncio
+async def test_get_cooldown_times_per():
+    @cooldown(2, datetime.timedelta(days=1), CooldownBucket.all)
+    async def test():
+        pass
+
+    _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
+
+    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is None
+    await test()
+    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is not None

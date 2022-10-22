@@ -268,6 +268,28 @@ class Cooldown:
             self._cache[bucket] = _bucket
             return _bucket
 
+    def get_cooldown_times_per(
+        self, bucket: _HashableArguments
+    ) -> Optional[CooldownTimesPer]:
+        """
+        Return the relevant CooldownTimesPer object for
+        this bucket, returns None if one does not currently exist.
+
+        Parameters
+        ----------
+        bucket: _HashableArguments
+            The bucket you wish to receive agaisnt
+
+        Returns
+        -------
+        Optional[CooldownTimesPer]
+            The internal :py:class:`CooldownTimesPer` object
+        """
+        try:
+            return self._get_cooldown_for_bucket(bucket, raise_on_create=True)
+        except NonExistent:
+            return None
+
     def get_bucket(self, *args, **kwargs) -> _HashableArguments:
         """
         Return the given bucket for some given arguments.

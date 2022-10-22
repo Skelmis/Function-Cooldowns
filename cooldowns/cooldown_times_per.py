@@ -30,6 +30,11 @@ class CooldownTimesPer:
             The period of seconds limit applies to
         _cooldown: Cooldown
             A backref to the parent cooldown manager.
+
+        Notes
+        -----
+        This is an internal object.
+        You do not need to construct it yourself.
         """
         self.limit: int = limit
         self.time_period: float = time_period

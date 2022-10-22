@@ -1,9 +1,9 @@
-Cooldown Reference
-==================
+CooldownTimesPer Reference
+==========================
 
 .. currentmodule:: cooldowns
 
-.. autoclass:: Cooldown
+.. autoclass:: CooldownTimesPer
     :members:
     :undoc-members:
     :special-members: __init__
