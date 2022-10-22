@@ -12,8 +12,6 @@ if TYPE_CHECKING:
 
 
 class CooldownTimesPer:
-    # Essentially TimesPer but modified
-    # to throw Exceptions instead of queue
     def __init__(
         self,
         limit: int,
@@ -79,6 +77,28 @@ class CooldownTimesPer:
         try:
             # Needs to be a PEEK operand
             next_reset: datetime.datetime = self._next_reset._queue[0]  # type: ignore
+        except IndexError:
+            return None
+
+        return next_reset
+
+    @property
+    def fully_reset_at(self) -> Optional[datetime.datetime]:
+        """When this bucket is fully reset.
+
+        Returns
+        -------
+        Optional[datetime.datetime]
+            When this bucket fully resets.
+
+        Notes
+        -----
+        This will return None if it
+        is already fully reset.
+        """
+        try:
+            # Try PEEK at the last entry if it exists
+            next_reset: datetime.datetime = self._next_reset._queue[-1]  # type: ignore
         except IndexError:
             return None
 
