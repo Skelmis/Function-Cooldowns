@@ -7,7 +7,11 @@ from cooldowns.exceptions import (
     NonExistent,
     CooldownAlreadyExists,
 )
-from cooldowns.utils import shared_cooldown_refs, define_shared_cooldown
+from cooldowns.utils import (
+    shared_cooldown_refs,
+    define_shared_cooldown,
+    get_shared_cooldown,
+)
 
 
 @pytest.mark.asyncio
@@ -135,3 +139,16 @@ def test_define_cooldown():
 
     with pytest.raises(CooldownAlreadyExists):
         define_shared_cooldown(1, 2, CooldownBucket.args, cooldown_id="r_1")
+
+
+def test_get_shared_cooldown():
+    define_shared_cooldown(1, 1, CooldownBucket.all, cooldown_id="r_1")
+
+    r_1 = get_shared_cooldown("r_1")
+    assert isinstance(r_1, Cooldown)
+    assert r_1.cooldown_id == "r_1"
+
+
+def test_missing_get_shared_cooldown():
+    with pytest.raises(NonExistent):
+        get_shared_cooldown("r_2")

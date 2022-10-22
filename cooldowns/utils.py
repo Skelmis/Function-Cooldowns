@@ -262,3 +262,28 @@ def define_shared_cooldown(
         time_period=time_period,
     )
     shared_cooldown_refs[cooldown_id] = cooldown
+
+
+def get_shared_cooldown(cooldown_id: COOLDOWN_ID) -> Cooldown:
+    """Retrieve a shared :py:class:`Cooldown` object.
+
+    Parameters
+    ----------
+    cooldown_id: Union[int, str]
+        The id of the cooldown we wish to get
+
+    Returns
+    -------
+    Cooldown
+        The associated cooldown
+
+    Raises
+    ------
+    NonExistent
+        Failed to find that cooldown
+    """
+    cooldown: Optional[Cooldown] = shared_cooldown_refs.get(cooldown_id)
+    if not cooldown:
+        raise NonExistent(f"Cannot find a cooldown with the id '{cooldown_id}'.")
+
+    return cooldown

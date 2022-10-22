@@ -17,6 +17,7 @@ from .utils import (
     reset_bucket,
     get_cooldown,
     define_shared_cooldown,
+    get_shared_cooldown,
 )
 
 __all__ = (
@@ -37,6 +38,7 @@ __all__ = (
     "reset_cooldown",
     "get_cooldown",
     "define_shared_cooldown",
+    "get_shared_cooldown",
 )
 
 __version__ = "1.5.0"
