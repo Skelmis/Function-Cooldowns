@@ -278,7 +278,8 @@ class Cooldown:
         Parameters
         ----------
         bucket: _HashableArguments
-            The bucket you wish to receive agaisnt
+            The bucket you wish to receive against.
+            Get this using :py:meth:`Cooldown.get_bucket`
 
         Returns
         -------
