@@ -16,3 +16,5 @@ Various utilities for using cooldowns.
 .. autofunction:: reset_bucket
 
 .. autofunction:: get_cooldown
+
+.. autofunction:: get_shared_cooldown
