@@ -54,7 +54,7 @@ class _HashableArguments:
             return hash(self.args)
 
         if not has_args and has_kwargs:
-            # Has kwargs as a tuple of tuples
+            # Hash kwargs as a tuple of tuples
             rolling_hash = []
             for k, v in self.kwargs.items():
                 rolling_hash.append((k, v))
