@@ -10,4 +10,6 @@ For example usages, view the examples section.
 
 .. autofunction:: cooldown
 
+.. autofunction:: static_cooldown
+
 .. autofunction:: shared_cooldown
