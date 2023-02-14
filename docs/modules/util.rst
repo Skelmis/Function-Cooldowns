@@ -7,6 +7,8 @@ Various utilities for using cooldowns.
 
 .. autofunction:: define_shared_cooldown
 
+.. autofunction:: define_shared_static_cooldown
+
 .. autofunction:: get_remaining_calls
 
 .. autofunction:: reset_cooldowns

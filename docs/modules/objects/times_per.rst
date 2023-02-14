@@ -1,15 +1,15 @@
-Cooldown Reference
+TimesPer Reference
 ==================
 
 .. currentmodule:: cooldowns
 
-.. autoclass:: Cooldown
+.. autoclass:: CooldownTimesPer
     :members:
     :undoc-members:
     :special-members: __init__
 
 
-.. autoclass:: StaticCooldown
+.. autoclass:: StaticTimesPer
     :members:
     :undoc-members:
     :special-members: __init__

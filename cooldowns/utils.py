@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 from typing import Callable, Any, Coroutine, List, TYPE_CHECKING, Union, Dict, Optional
 
 from cooldowns.exceptions import (
@@ -10,12 +11,14 @@ from cooldowns.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from cooldowns import Cooldown, CooldownBucketProtocol
+    from cooldowns import Cooldown, CooldownBucketProtocol, StaticCooldown
+
+    CooldownT = Union[Cooldown, StaticCooldown]
 
 # hA! Hey you, come say hi :O
 COOLDOWN_ID = Union[int, str]
 # A 'global state' of sorts
-shared_cooldown_refs: Dict[COOLDOWN_ID, Cooldown] = {}
+shared_cooldown_refs: Dict[COOLDOWN_ID, CooldownT] = {}
 MaybeCoro = Callable[[Any, Any], Coroutine[Any, Any, Any]]
 
 
@@ -31,8 +34,8 @@ async def maybe_coro(func: MaybeCoro, *args, **kwargs):
     return func(*args, **kwargs)
 
 
-def _get_cooldowns_or_raise(func: MaybeCoro) -> List[Cooldown]:
-    cooldowns: List[Cooldown] = getattr(func, "_cooldowns")
+def _get_cooldowns_or_raise(func: MaybeCoro) -> List[CooldownT]:
+    cooldowns: List[CooldownT] = getattr(func, "_cooldowns")
     if not cooldowns:
         raise NoRegisteredCooldowns
 
@@ -70,7 +73,7 @@ def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
     This aggregates all attached cooldowns
     and returns the lowest remaining amount.
     """
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
+    cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
 
     remaining: List[int] = [
         cooldown.remaining_calls(*args, **kwargs) for cooldown in cooldowns
@@ -94,7 +97,7 @@ def reset_cooldowns(func: MaybeCoro):
     NoRegisteredCooldowns
         The func has no cooldown's attached.
     """
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
+    cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
     for cooldown in cooldowns:
         cooldown.clear(force_evict=True)
 
@@ -116,7 +119,7 @@ def reset_bucket(func: MaybeCoro, *args, **kwargs):
     -----
     Does nothing if it resets nothing.
     """
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
+    cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
     for cooldown in cooldowns:
         bucket = cooldown.get_bucket(*args, **kwargs)
         try:
@@ -149,7 +152,7 @@ def reset_cooldown(cooldown_id: COOLDOWN_ID):
         ) from None
 
 
-def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
+def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> CooldownT:
     """
     Get the :py:class:`Cooldown` object from the func
     with the provided cooldown id.
@@ -171,7 +174,7 @@ def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
     NonExistent
         Failed to find that cooldown on this func.
     """
-    cooldowns: List[Cooldown] = _get_cooldowns_or_raise(func)
+    cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
     for cooldown in cooldowns:
         if cooldown.cooldown_id == cooldown_id:
             return cooldown
@@ -183,7 +186,7 @@ def get_cooldown(func: MaybeCoro, cooldown_id: COOLDOWN_ID) -> Cooldown:
 
 def get_all_cooldowns(
     func: MaybeCoro,
-) -> List[Cooldown]:
+) -> List[CooldownT]:
     """
     Get all the :py:class:`Cooldown` objects from the func provided.
 
@@ -248,6 +251,10 @@ def define_shared_cooldown(
     ------
     CooldownAlreadyExists
         A Cooldown with this ID already exists.
+
+    Notes
+    -----
+    All times are internally handled based off UTC.
     """
     if cooldown_id in shared_cooldown_refs:
         raise CooldownAlreadyExists
@@ -264,8 +271,68 @@ def define_shared_cooldown(
     shared_cooldown_refs[cooldown_id] = cooldown
 
 
-def get_shared_cooldown(cooldown_id: COOLDOWN_ID) -> Cooldown:
-    """Retrieve a shared :py:class:`Cooldown` object.
+def define_shared_static_cooldown(
+    limit: int,
+    reset_times: Union[datetime.time, List[datetime.time]],
+    bucket: CooldownBucketProtocol,
+    cooldown_id: COOLDOWN_ID,
+    *,
+    check: Optional[MaybeCoro] = default_check,
+):
+    """
+    Define a global cooldown which can be used to ratelimit
+    1 or more callables under the same situations.
+
+    View the examples for how to use this.
+
+    Parameters
+    ----------
+    limit: int
+        How many call's can be made in the time
+        period specified by ``time_period``
+    reset_times: Union[datetime.time, List[datetime.time]]
+        A time or list of the possible
+        times in the day to reset cooldowns at
+    bucket: CooldownBucketProtocol
+        The :class:`Bucket` implementation to use
+        as a bucket to separate cooldown buckets.
+    cooldown_id: Union[int, str]
+        The ID used to refer to this when defining a shared_cooldown
+
+        This should be unique globally,
+        behaviour is not guaranteed if not unique.
+    check: Optional[MaybeCoro]
+        A Callable which dictates whether or not
+        to apply the cooldown on current invoke.
+
+        If this Callable returns a truthy value,
+        then the cooldown will be used for the current call.
+
+        I.e. If you wished to bypass cooldowns, you
+        would return False if you invoked the Callable.
+
+    Raises
+    ------
+    CooldownAlreadyExists
+        A Cooldown with this ID already exists.
+    """
+    if cooldown_id in shared_cooldown_refs:
+        raise CooldownAlreadyExists
+
+    from .static_cooldown import StaticCooldown
+
+    cooldown: StaticCooldown = StaticCooldown(
+        check=check,
+        limit=limit,
+        bucket=bucket,
+        cooldown_id=cooldown_id,
+        reset_times=reset_times,
+    )
+    shared_cooldown_refs[cooldown_id] = cooldown
+
+
+def get_shared_cooldown(cooldown_id: COOLDOWN_ID) -> CooldownT:
+    """Retrieve a shared :py:class:`Cooldown` or :py:class:`StaticCooldown` object.
 
     Parameters
     ----------
@@ -282,7 +349,7 @@ def get_shared_cooldown(cooldown_id: COOLDOWN_ID) -> Cooldown:
     NonExistent
         Failed to find that cooldown
     """
-    cooldown: Optional[Cooldown] = shared_cooldown_refs.get(cooldown_id)
+    cooldown: Optional[CooldownT] = shared_cooldown_refs.get(cooldown_id)
     if not cooldown:
         raise NonExistent(f"Cannot find a cooldown with the id '{cooldown_id}'.")
 

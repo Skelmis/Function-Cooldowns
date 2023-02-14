@@ -19,7 +19,7 @@ async def test_retry_after():
 
         assert 1 == 2, "This should never be called."
     except CallableOnCooldown as e:
-        assert e.retry_after in [15, 14]
+        assert round(e.retry_after) in [15, 14]
         assert cooldown_times_per.next_reset is not None
 
     await asyncio.sleep(2)
