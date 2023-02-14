@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import functools
 from logging import getLogger
-from typing import Callable, Optional, TypeVar, Dict, Union
+from typing import Callable, Optional, TypeVar, Dict, Union, Type
 
 from .cooldown_times_per import CooldownTimesPer
 from .persistence import State, _pickle_cooldown, _unpickle_cooldown
@@ -23,6 +23,7 @@ from .protocols import CooldownBucketProtocol
 logger = getLogger(__name__)
 
 T = TypeVar("T", bound=_HashableArguments)
+TP = TypeVar("TP", bound=CooldownTimesPer)
 
 
 def cooldown(
@@ -230,7 +231,7 @@ class Cooldown:
         self.pending_reset: bool = False
         self._last_bucket: Optional[_HashableArguments] = None
 
-        self._cache: Dict[_HashableArguments, CooldownTimesPer] = {}
+        self._cache: Dict[_HashableArguments, TP] = {}
 
         # How long to sleep between attempt cache clean calls
         self._cache_clean_eagerness: int = 250
@@ -244,7 +245,7 @@ class Cooldown:
         if not self._clean_task:
             self._clean_task = asyncio.create_task(self._keep_buckets_clear())
 
-        bucket: CooldownTimesPer = self._get_cooldown_for_bucket(self._last_bucket)
+        bucket: TP = self._get_cooldown_for_bucket(self._last_bucket)
         async with bucket:
             return self
 
@@ -257,20 +258,18 @@ class Cooldown:
 
     def _get_cooldown_for_bucket(
         self, bucket: _HashableArguments, *, raise_on_create: bool = False
-    ) -> CooldownTimesPer:
+    ) -> TP:
         try:
             return self._cache[bucket]
         except KeyError:
             if raise_on_create:
                 raise NonExistent
 
-            _bucket = CooldownTimesPer(self.limit, self.time_period, self)
+            _bucket: TP = CooldownTimesPer(self.limit, self.time_period, self)
             self._cache[bucket] = _bucket
             return _bucket
 
-    def get_cooldown_times_per(
-        self, bucket: _HashableArguments
-    ) -> Optional[CooldownTimesPer]:
+    def get_cooldown_times_per(self, bucket: _HashableArguments) -> Optional[TP]:
         """
         Return the relevant CooldownTimesPer object for
         this bucket, returns None if one does not currently exist.
@@ -366,7 +365,7 @@ class Cooldown:
         try:
             # Evict item from cache only if it
             # is not tracking anything
-            _bucket: CooldownTimesPer = self._cache[bucket]
+            _bucket: TP = self._cache[bucket]
             if not _bucket.has_cooldown or force_evict:
                 del self._cache[bucket]
         except KeyError:
@@ -393,7 +392,7 @@ class Cooldown:
         """
         bucket: _HashableArguments = self.get_bucket(*args, **kwargs)
         try:
-            cooldown_times_per: CooldownTimesPer = self._get_cooldown_for_bucket(
+            cooldown_times_per: TP = self._get_cooldown_for_bucket(
                 bucket, raise_on_create=True
             )
         except NonExistent:
