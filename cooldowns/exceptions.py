@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Callable, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown
@@ -71,7 +71,20 @@ class CallableOnCooldown(BaseCooldownException):
 
     @property
     def retry_after(self) -> float:
-        """How many seconds before you can retry the `Callable`"""
+        """How many seconds before you can retry the `Callable`
+
+        Returns
+        -------
+        float
+            How many seconds before you can retry this
+
+            .. note::
+
+                This will be 0 if you can retry now
+        """
         now = datetime.datetime.utcnow()
+        if now > self.resets_at:
+            return 0
+
         gap: datetime.timedelta = self.resets_at - now
-        return gap.seconds
+        return gap.total_seconds()
