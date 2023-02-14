@@ -251,6 +251,10 @@ def define_shared_cooldown(
     ------
     CooldownAlreadyExists
         A Cooldown with this ID already exists.
+
+    Notes
+    -----
+    All times are internally handled based off UTC.
     """
     if cooldown_id in shared_cooldown_refs:
         raise CooldownAlreadyExists

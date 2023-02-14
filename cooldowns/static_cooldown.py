@@ -26,8 +26,8 @@ def static_cooldown(
         How many call's can be made in the time
         period specified by ``time_period``
     reset_times: Union[datetime.time, List[datetime.time]]
-            A time or list of the possible
-            times in the day to reset cooldowns at
+        A time or list of the possible
+        times in the day to reset cooldowns at
     bucket: Optional[CooldownBucketProtocol]
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
