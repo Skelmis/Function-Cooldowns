@@ -39,6 +39,9 @@ class StaticTimesPer(CooldownTimesPer):
         super().__init__(limit, 0, _cooldown)
         self._reset_times = reset_times
 
+    def __repr__(self):
+        return f"<StaticTimesPer(limit={self.limit}, current={self.current}, resets_at=[...])>"
+
     @staticmethod
     def next_datetime(
         current: datetime.datetime, time: datetime.time
@@ -46,6 +49,7 @@ class StaticTimesPer(CooldownTimesPer):
         repl = current.replace(
             hour=time.hour,
             minute=time.minute,
+            second=time.second,
             microsecond=time.microsecond,
         )
         while repl <= current:

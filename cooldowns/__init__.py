@@ -3,6 +3,7 @@ from collections import namedtuple
 from .buckets import CooldownBucket, SlashBucket
 from .protocols import CooldownBucketProtocol
 from .cooldown import Cooldown, cooldown, shared_cooldown
+from .static_cooldown import StaticCooldown, static_cooldown
 from .cooldown_times_per import CooldownTimesPer
 from .static_times_per import StaticTimesPer
 from .exceptions import (
@@ -19,6 +20,7 @@ from .utils import (
     get_cooldown,
     define_shared_cooldown,
     get_shared_cooldown,
+    define_shared_static_cooldown,
 )
 
 __all__ = (
@@ -40,6 +42,10 @@ __all__ = (
     "get_cooldown",
     "define_shared_cooldown",
     "get_shared_cooldown",
+    "StaticTimesPer",
+    "StaticCooldown",
+    "static_cooldown",
+    "define_shared_static_cooldown",
 )
 
 __version__ = "1.6.0"
