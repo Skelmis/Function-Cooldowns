@@ -12,9 +12,10 @@ from cooldowns import (
     define_shared_static_cooldown,
     static_cooldown,
     shared_cooldown,
+    define_shared_cooldown,
 )
 from cooldowns.buckets import _HashableArguments
-from cooldowns.exceptions import CallableOnCooldown, NonExistent
+from cooldowns.exceptions import CallableOnCooldown, NonExistent, CooldownAlreadyExists
 
 
 @pytest.mark.asyncio
@@ -346,3 +347,26 @@ async def test_get_static_times_per():
     assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is None
     await test()
     assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is not None
+
+
+def test_shared_crossover():
+    define_shared_static_cooldown(
+        1, datetime.time(second=1), CooldownBucket.all, cooldown_id="test"
+    )
+
+    with pytest.raises(CooldownAlreadyExists):
+        define_shared_static_cooldown(
+            2, datetime.time(second=1), CooldownBucket.all, cooldown_id="test"
+        )
+
+    define_shared_static_cooldown(
+        1, datetime.time(second=1), CooldownBucket.all, cooldown_id="test2"
+    )
+
+    define_shared_cooldown(1, 1, CooldownBucket.all, cooldown_id="test3")
+
+    with pytest.raises(CooldownAlreadyExists):
+        define_shared_cooldown(1, 1, CooldownBucket.all, cooldown_id="test")
+
+    with pytest.raises(CooldownAlreadyExists):
+        define_shared_cooldown(1, 1, CooldownBucket.all, cooldown_id="test3")
