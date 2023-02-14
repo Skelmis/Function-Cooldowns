@@ -76,7 +76,6 @@ class CooldownTimesPer:
         """
         try:
             # Needs to be a PEEK operand
-            r = datetime.datetime.utcnow()
             next_reset: datetime.datetime = self._next_reset._queue[0]  # type: ignore
         except IndexError:
             return None
