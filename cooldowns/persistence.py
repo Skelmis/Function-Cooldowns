@@ -89,7 +89,6 @@ def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
 
             current_time = datetime.datetime.utcnow()
             cooldown_times_per._next_reset.put_nowait(epoch_time)
-            a = (epoch_time - current_time).total_seconds()
             cooldown_times_per.loop.call_later(
                 (epoch_time - current_time).total_seconds(),
                 cooldown_times_per._reset_invoke,
