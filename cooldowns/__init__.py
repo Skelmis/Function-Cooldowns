@@ -48,6 +48,6 @@ __all__ = (
     "define_shared_static_cooldown",
 )
 
-__version__ = "1.7.0"
+__version__ = "1.7.1"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-version_info = VersionInfo(major=1, minor=7, micro=0, releaselevel="final", serial=0)
+version_info = VersionInfo(major=1, minor=7, micro=1, releaselevel="final", serial=0)
