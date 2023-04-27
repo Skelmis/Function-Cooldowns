@@ -1,8 +1,10 @@
 import asyncio
+import datetime
 
 import pytest
+from freezegun import freeze_time
 
-from cooldowns import cooldown, CooldownBucket, Cooldown
+from cooldowns import cooldown, CooldownBucket, Cooldown, CallableOnCooldown
 
 
 @pytest.mark.asyncio
@@ -94,3 +96,43 @@ async def test_loading():
     assert _cooldown_1.time_period == 70
     assert _cooldown_1.pending_reset is True
     assert _cooldown_1.cooldown_id == 1
+
+
+@pytest.mark.asyncio
+@freeze_time("2023-02-14 03:30:00", tick=True)
+async def test_later_eviction():
+    """Tests that later state items get evicted at the correct time"""
+
+    @cooldown(1, 1, CooldownBucket.all, cooldown_id=1)
+    async def test(var, *, bar=None):
+        pass
+
+    _cooldown_1: Cooldown = getattr(test, "_cooldowns")[0]
+    _cooldown_1.load_from_state(
+        {
+            "cache": {
+                "ccopy_reg\n_reconstructor\np0\n(ccooldowns.buckets.hashable_arguments\n_HashableArguments\np1\nc__builtin__\nobject\np2\nNtp3\nRp4\n(dp5\nVargs\np6\n(tsVkwargs\np7\n(dp8\nsb.": {
+                    "current": 0,
+                    "limit": 1,
+                    "next_reset": [datetime.datetime.utcnow().timestamp() + 0.25],
+                    "time_period": 1,
+                }
+            },
+            "cooldown_id": 1,
+            "limit": 1,
+            "pending_reset": False,
+            "time_period": 1,
+        }
+    )
+    assert _cooldown_1._cache != {}, "Test entry should have a cache entry"
+    assert _cooldown_1._clean_task is None
+
+    with pytest.raises(CallableOnCooldown):
+        async with _cooldown_1():
+            pass
+
+    await asyncio.sleep(0.5)
+    assert _cooldown_1._clean_task is not None
+
+    async with _cooldown_1():
+        pass

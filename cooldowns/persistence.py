@@ -79,7 +79,7 @@ def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
         cooldown_times_per.current = v["current"]
 
         for epoch in v["next_reset"]:
-            epoch_time = datetime.datetime.fromtimestamp(
+            epoch_time = datetime.datetime.utcfromtimestamp(
                 epoch,  # tz=datetime.timezone.utc
             )
             if _check_expired(epoch_time):
@@ -87,7 +87,12 @@ def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
                 cooldown_times_per.current += 1
                 continue
 
+            current_time = datetime.datetime.utcnow()
             cooldown_times_per._next_reset.put_nowait(epoch_time)
+            cooldown_times_per.loop.call_later(
+                (epoch_time - current_time).total_seconds(),
+                cooldown_times_per._reset_invoke,
+            )
 
         cache[hashable_arguments] = cooldown_times_per
 
