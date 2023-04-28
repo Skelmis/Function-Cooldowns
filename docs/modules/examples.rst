@@ -259,3 +259,28 @@ How to use the Cooldown object without a decorator.
         # This will apply the cooldown
         ...
         # Do things
+
+TriggerCooldown usage
+------------------------
+
+This is useful if you want to be able to trigger a specific
+time_period cooldown inside the command itself.
+
+.. code-block:: python
+    :linenos:
+
+
+    from cooldowns import TriggerCooldown, CooldownBucket
+
+    my_trigger_cooldown = TriggerCooldown(1, 5, CooldownBucket.all)
+
+    @my_trigger_cooldown
+    async def test_1(*args, **kwargs):
+        # Your command.
+        # Do things..
+
+        # Apply the trigger cooldown instantly.
+        await my_trigger_cooldown.trigger(20)
+
+        # You can still do things..
+        # But command cannot be called again within 20 seconds.
