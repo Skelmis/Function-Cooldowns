@@ -113,8 +113,6 @@ class TriggerCooldown:
             This call resulted in a cooldown being put into effect.
         """
 
-        self.triggered = False
-
         self.limit = limit
         self.time_period = time_period
         self.bucket = bucket
@@ -172,7 +170,6 @@ class TriggerCooldown:
         time_period : `Union[float, datetime.timedelta]`
             The time period that cooldwon will remain triggered.
         """
-        self.triggered = True
         self.trigger_cooldown.time_period = (
             time_period
             if isinstance(time_period, (float, int))
@@ -217,6 +214,7 @@ class TriggerCooldown:
                 f"Expected `func` to be a coroutine, "
                 f"found {func} of type {func.__class__.__name__!r} instead"  # noqa
             )
+
         # Links the cooldowns to the given function.
         _cooldown._func = func
         _trigger_cooldown._func = func
@@ -253,9 +251,7 @@ class TriggerCooldown:
                     else:
                         result = await func(*args, **kwargs)
                 return result
-                # If not, untrigger the cooldown.
-                # else:
-                #     self.triggered = False
+
             # If the cooldown is not triggered.
             # Runs the normal Cooldown.
             async with _cooldown(*args, **kwargs):
@@ -265,5 +261,6 @@ class TriggerCooldown:
                 else:
                     result = await func(*args, **kwargs)
                 return result
+
         # Return the decorator.
         return inner

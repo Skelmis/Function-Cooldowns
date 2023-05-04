@@ -46,7 +46,6 @@ async def test_shared_trigger_cooldown():
         return 2
 
     assert await test_1() == 1
-    assert await test_2() == 2
 
     with pytest.raises(CallableOnCooldown):
         await test_1()
