@@ -15,9 +15,7 @@ async def test_trigger_cooldown():
     my_trigger_cooldown = TriggerCooldown(1, 0.3, CooldownBucket.all)
 
     @my_trigger_cooldown
-    async def test_1(trigger_test = False):
-        if trigger_test:
-            await my_trigger_cooldown.trigger(20)
+    async def test_1():
         return 1
 
     assert await test_1() == 1
@@ -25,9 +23,17 @@ async def test_trigger_cooldown():
     with pytest.raises(CallableOnCooldown):
         await test_1()
 
-    await asyncio.sleep(0.4)
 
-    assert await test_1(trigger_test = True)
+@pytest.mark.asyncio
+async def test_trigger_cooldown_triggering():
+    my_trigger_cooldown = TriggerCooldown(1, 0.3, CooldownBucket.all)
+    
+    @my_trigger_cooldown
+    async def test_1():
+        await my_trigger_cooldown.trigger(20)
+        return 1
+
+    assert await test_1() == 1
 
     await asyncio.sleep(0.4)
     with pytest.raises(CallableOnCooldown):
