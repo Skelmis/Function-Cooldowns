@@ -20,3 +20,5 @@ Various utilities for using cooldowns.
 .. autofunction:: get_cooldown
 
 .. autofunction:: get_shared_cooldown
+
+.. autofunction:: get_all_cooldowns
