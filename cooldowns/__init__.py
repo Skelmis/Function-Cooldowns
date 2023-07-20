@@ -3,6 +3,7 @@ from collections import namedtuple
 from .buckets import CooldownBucket, SlashBucket
 from .protocols import CooldownBucketProtocol
 from .cooldown import Cooldown, cooldown, shared_cooldown
+from .trigger_cooldown import TriggerCooldown
 from .static_cooldown import StaticCooldown, static_cooldown
 from .cooldown_times_per import CooldownTimesPer
 from .static_times_per import StaticTimesPer
@@ -46,6 +47,7 @@ __all__ = (
     "StaticCooldown",
     "static_cooldown",
     "define_shared_static_cooldown",
+    "TriggerCooldown",
 )
 
 __version__ = "1.7.1"
