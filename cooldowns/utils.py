@@ -11,7 +11,12 @@ from cooldowns.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from cooldowns import Cooldown, CooldownBucketProtocol, StaticCooldown
+    from cooldowns import (
+        Cooldown,
+        CooldownBucketProtocol,
+        AsyncCooldownBucketProtocol,
+        StaticCooldown,
+    )
 
     CooldownT = Union[Cooldown, StaticCooldown]
 
@@ -211,7 +216,7 @@ def get_all_cooldowns(
 def define_shared_cooldown(
     limit: int,
     time_period: float,
-    bucket: CooldownBucketProtocol,
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
     cooldown_id: COOLDOWN_ID,
     *,
     check: Optional[MaybeCoro] = default_check,
@@ -229,7 +234,7 @@ def define_shared_cooldown(
         period specified by ``time_period``
     time_period: float
         The time period related to ``limit``
-    bucket: CooldownBucketProtocol
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
     cooldown_id: Union[int, str]
@@ -274,7 +279,7 @@ def define_shared_cooldown(
 def define_shared_static_cooldown(
     limit: int,
     reset_times: Union[datetime.time, List[datetime.time]],
-    bucket: CooldownBucketProtocol,
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
     cooldown_id: COOLDOWN_ID,
     *,
     check: Optional[MaybeCoro] = default_check,
@@ -293,7 +298,7 @@ def define_shared_static_cooldown(
     reset_times: Union[datetime.time, List[datetime.time]]
         A time or list of the possible
         times in the day to reset cooldowns at
-    bucket: CooldownBucketProtocol
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
     cooldown_id: Union[int, str]

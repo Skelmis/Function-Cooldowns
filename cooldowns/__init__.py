@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from .buckets import CooldownBucket, SlashBucket
-from .protocols import CooldownBucketProtocol
+from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol
 from .cooldown import Cooldown, cooldown, shared_cooldown
 from .static_cooldown import StaticCooldown, static_cooldown
 from .cooldown_times_per import CooldownTimesPer
@@ -27,6 +27,7 @@ from .utils import (
 __all__ = (
     "CooldownBucket",
     "SlashBucket",
+    "AsyncCooldownBucketProtocol",
     "Cooldown",
     "cooldown",
     "shared_cooldown",
