@@ -6,6 +6,8 @@ from asyncio import Queue
 import datetime
 from typing import TypedDict, Union, Optional, Dict, List
 
+from cooldowns.date_util import _utc_now, _utc_from_timestamp
+
 if typing.TYPE_CHECKING:
     from cooldowns import Cooldown, CooldownTimesPer
 
@@ -56,7 +58,7 @@ def _pickle_cooldown(cooldown: Cooldown) -> State:
 
 def _check_expired(time: datetime.datetime) -> bool:
     """Returns `True` if in the past, `False` otherwise"""
-    return datetime.datetime.utcnow() > time
+    return _utc_now() > time
 
 
 def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
@@ -79,15 +81,13 @@ def _unpickle_cooldown(cooldown: Cooldown, state: State) -> None:
         cooldown_times_per.current = v["current"]
 
         for epoch in v["next_reset"]:
-            epoch_time = datetime.datetime.utcfromtimestamp(
-                epoch,  # tz=datetime.timezone.utc
-            )
+            epoch_time = _utc_from_timestamp(epoch)
             if _check_expired(epoch_time):
                 # No longer relevant
                 cooldown_times_per.current += 1
                 continue
 
-            current_time = datetime.datetime.utcnow()
+            current_time = _utc_now()
             cooldown_times_per._next_reset.put_nowait(epoch_time)
             cooldown_times_per.loop.call_later(
                 (epoch_time - current_time).total_seconds(),

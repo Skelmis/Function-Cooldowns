@@ -1,10 +1,10 @@
 import asyncio
-import datetime
 
 import pytest
 from freezegun import freeze_time
 
 from cooldowns import cooldown, CooldownBucket, Cooldown, CallableOnCooldown
+from cooldowns.date_util import _utc_now
 
 
 @pytest.mark.asyncio
@@ -114,7 +114,7 @@ async def test_later_eviction():
                 "ccopy_reg\n_reconstructor\np0\n(ccooldowns.buckets.hashable_arguments\n_HashableArguments\np1\nc__builtin__\nobject\np2\nNtp3\nRp4\n(dp5\nVargs\np6\n(tsVkwargs\np7\n(dp8\nsb.": {
                     "current": 0,
                     "limit": 1,
-                    "next_reset": [datetime.datetime.utcnow().timestamp() + 0.25],
+                    "next_reset": [_utc_now().timestamp() + 0.25],
                     "time_period": 1,
                 }
             },

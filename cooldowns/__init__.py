@@ -50,6 +50,6 @@ __all__ = (
     "get_all_cooldowns",
 )
 
-__version__ = "1.7.1"
+__version__ = "2.0.0"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-version_info = VersionInfo(major=1, minor=7, micro=1, releaselevel="final", serial=0)
+version_info = VersionInfo(major=0, minor=0, micro=0, releaselevel="final", serial=0)

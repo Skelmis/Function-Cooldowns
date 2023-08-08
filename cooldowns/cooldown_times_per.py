@@ -6,6 +6,7 @@ from asyncio import get_event_loop, AbstractEventLoop, Queue
 from typing import TYPE_CHECKING, Optional, Dict, TypeVar, TypedDict
 
 from cooldowns.exceptions import CallableOnCooldown
+from cooldowns.date_util import _utc_now
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown
@@ -54,7 +55,7 @@ class CooldownTimesPer:
         self.current -= 1
 
         self._next_reset.put_nowait(
-            datetime.datetime.utcnow() + datetime.timedelta(seconds=self.time_period)
+            _utc_now() + datetime.timedelta(seconds=self.time_period)
         )
         self.loop.call_later(self.time_period, self._reset_invoke)
 
