@@ -18,7 +18,7 @@ from .utils import (
 )
 from . import CooldownBucket, utils
 from .buckets import _HashableArguments
-from .protocols import CooldownBucketProtocol
+from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol
 
 logger = getLogger(__name__)
 
@@ -29,7 +29,7 @@ TP = TypeVar("TP", bound=CooldownTimesPer)
 def cooldown(
     limit: int,
     time_period: Union[float, datetime.timedelta],
-    bucket: CooldownBucketProtocol,
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
     check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[COOLDOWN_ID] = None,
@@ -44,7 +44,7 @@ def cooldown(
         period specified by ``time_period``
     time_period: Union[float, datetime.timedelta]
         The time period related to ``limit``. This is seconds.
-    bucket: CooldownBucketProtocol
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
         The :class:`Bucket` implementation to use
         as a bucket to separate cooldown buckets.
     check: Optional[MaybeCoro]
@@ -176,7 +176,9 @@ class Cooldown:
         self,
         limit: int,
         time_period: Union[float, datetime.timedelta],
-        bucket: Optional[CooldownBucketProtocol] = None,
+        bucket: Optional[
+            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
+        ] = None,
         func: Optional[Callable] = None,
         *,
         cooldown_id: Optional[Union[int, str]] = None,
@@ -190,7 +192,7 @@ class Cooldown:
             period specified by ``time_period``
         time_period: Union[float, datetime.timedelta]
             The time period related to ``limit``. This is seconds.
-        bucket: Optional[CooldownBucketProtocol]
+        bucket: Optional[Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]]
             The :class:`Bucket` implementation to use
             as a bucket to separate cooldown buckets.
 
@@ -227,9 +229,11 @@ class Cooldown:
         self.cooldown_id: Optional[Union[int, str]] = cooldown_id
 
         self._func: Optional[Callable] = func
-        self._bucket: CooldownBucketProtocol = bucket
+        self._bucket: Union[
+            CooldownBucketProtocol, AsyncCooldownBucketProtocol
+        ] = bucket
         self.pending_reset: bool = False
-        self._last_bucket: Optional[_HashableArguments] = None
+        self._raw_last_bucket: dict = {"args": [], "kwargs": {}}
 
         self._cache: Dict[_HashableArguments, TP] = {}
 
@@ -245,7 +249,10 @@ class Cooldown:
         if not self._clean_task:
             self._clean_task = asyncio.create_task(self._keep_buckets_clear())
 
-        bucket: TP = self._get_cooldown_for_bucket(self._last_bucket)
+        last_bucket = await self.get_bucket(
+            *self._raw_last_bucket["args"], **self._raw_last_bucket["kwargs"]
+        )
+        bucket: TP = self._get_cooldown_for_bucket(last_bucket)
         async with bucket:
             return self
 
@@ -253,7 +260,7 @@ class Cooldown:
         ...
 
     def __call__(self, *args, **kwargs):
-        self._last_bucket = self.get_bucket(*args, **kwargs)
+        self._raw_last_bucket = {"args": args, "kwargs": kwargs}
         return self
 
     def _get_cooldown_for_bucket(
@@ -290,7 +297,7 @@ class Cooldown:
         except NonExistent:
             return None
 
-    def get_bucket(self, *args, **kwargs) -> _HashableArguments:
+    async def get_bucket(self, *args, **kwargs) -> _HashableArguments:
         """
         Return the given bucket for some given arguments.
 
@@ -313,7 +320,7 @@ class Cooldown:
 
             This can then be used in :meth:`Cooldown.clear` calls.
         """
-        data = self._bucket.process(*args, **kwargs)
+        data = await maybe_coro(self._bucket.process, *args, **kwargs)
         if self._bucket is CooldownBucket.all:
             return _HashableArguments(*data[0], **data[1])
 
@@ -371,7 +378,7 @@ class Cooldown:
         except KeyError:
             pass
 
-    def remaining_calls(self, *args, **kwargs) -> int:
+    async def remaining_calls(self, *args, **kwargs) -> int:
         """
         Given a :type:`Callable`, return the amount of remaining
         available calls before these arguments will result
@@ -390,7 +397,7 @@ class Cooldown:
             How many more times this :type:`Callable`
             can be called without being rate-limited.
         """
-        bucket: _HashableArguments = self.get_bucket(*args, **kwargs)
+        bucket: _HashableArguments = await self.get_bucket(*args, **kwargs)
         try:
             cooldown_times_per: TP = self._get_cooldown_for_bucket(
                 bucket, raise_on_create=True
@@ -430,7 +437,7 @@ class Cooldown:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"
 
     @property
-    def bucket(self) -> CooldownBucketProtocol:
+    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]:
         """Returns the underlying bucket to process cooldowns against."""
         return self._bucket
 

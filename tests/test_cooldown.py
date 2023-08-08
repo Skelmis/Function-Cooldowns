@@ -55,7 +55,7 @@ def test_kwargs_cooldown_bucket():
 @pytest.mark.asyncio
 async def test_get_bucket():
     cooldown = Cooldown(1, 1)
-    hashed_args = cooldown.get_bucket(1, 2, three=3, four=4)
+    hashed_args = await cooldown.get_bucket(1, 2, three=3, four=4)
     assert hashed_args == _HashableArguments(1, 2, three=3, four=4)
 
 
@@ -138,6 +138,29 @@ async def test_custom_buckets():
 
 
 @pytest.mark.asyncio
+async def test_async_bucket_process():
+    class CustomBucket(Enum):
+        first_arg = 1
+
+        async def process(self, *args, **kwargs):
+            if self is CustomBucket.first_arg:
+                # This bucket is based ONLY off
+                # of the first argument passed
+                return args[0]
+
+    @cooldown(1, 1, bucket=CustomBucket.first_arg)
+    async def test_func(*args, **kwargs):
+        pass
+
+    await test_func(1, 2, 3)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_func(1)
+
+    await test_func(2)
+
+
+@pytest.mark.asyncio
 async def test_stacked_cooldowns():
     # Can call ONCE time_period second using the same args
     # Can call TWICE time_period second using the same kwargs
@@ -168,6 +191,7 @@ def test_sync_cooldowns():
 @pytest.mark.asyncio
 async def test_checks():
     """Ensures the check works as expected"""
+
     # Only apply cooldowns if the first arg is 1
     @cooldown(
         1, 1, bucket=CooldownBucket.args, check=lambda *args, **kwargs: args[0] == 1
@@ -185,6 +209,7 @@ async def test_checks():
 @pytest.mark.asyncio
 async def test_async_checks():
     """Ensures the check works as expected with async methods"""
+
     # Only apply cooldowns if the first arg is 1
     async def mock_db_check(*args, **kwargs):
         # You can do database calls here or anything
@@ -208,7 +233,7 @@ async def test_cooldown_clearing():
 
     assert not cooldown._cache
 
-    r_1 = cooldown.get_bucket(1, 1)
+    r_1 = await cooldown.get_bucket(1, 1)
     assert isinstance(r_1, _HashableArguments)
 
     # Test both specific and global clearing
@@ -246,11 +271,11 @@ async def test_remaining():
         pass
 
     _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
-    assert _cooldown.remaining_calls() == 2
+    assert await _cooldown.remaining_calls() == 2
     await test()
-    assert _cooldown.remaining_calls() == 1
+    assert await _cooldown.remaining_calls() == 1
     await test()
-    assert _cooldown.remaining_calls() == 0
+    assert await _cooldown.remaining_calls() == 0
     with pytest.raises(CallableOnCooldown):
         await test()
 
@@ -316,11 +341,11 @@ async def test_timedelta_support():
         pass
 
     _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
-    assert _cooldown.remaining_calls() == 2
+    assert await _cooldown.remaining_calls() == 2
     await test()
-    assert _cooldown.remaining_calls() == 1
+    assert await _cooldown.remaining_calls() == 1
     await test()
-    assert _cooldown.remaining_calls() == 0
+    assert await _cooldown.remaining_calls() == 0
     with pytest.raises(CallableOnCooldown):
         await test()
 
@@ -333,6 +358,6 @@ async def test_get_cooldown_times_per():
 
     _cooldown: Cooldown = getattr(test, "_cooldowns")[0]
 
-    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is None
+    assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is None
     await test()
-    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is not None
+    assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is not None

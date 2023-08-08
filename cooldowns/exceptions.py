@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import datetime
-from typing import Callable, TYPE_CHECKING, Optional
+from typing import Callable, TYPE_CHECKING
+
+from cooldowns.date_util import _utc_now
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown
@@ -82,7 +84,7 @@ class CallableOnCooldown(BaseCooldownException):
 
                 This will be 0 if you can retry now
         """
-        now = datetime.datetime.utcnow()
+        now = _utc_now()
         if now > self.resets_at:
             return 0
 
