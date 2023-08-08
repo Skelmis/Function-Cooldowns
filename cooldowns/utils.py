@@ -42,7 +42,7 @@ def _get_cooldowns_or_raise(func: MaybeCoro) -> List[CooldownT]:
     return cooldowns
 
 
-def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
+async def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
     """
     Given a `Callable`, return the amount of remaining
     available calls before these arguments will result
@@ -76,7 +76,7 @@ def get_remaining_calls(func: MaybeCoro, *args, **kwargs) -> int:
     cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
 
     remaining: List[int] = [
-        cooldown.remaining_calls(*args, **kwargs) for cooldown in cooldowns
+        await cooldown.remaining_calls(*args, **kwargs) for cooldown in cooldowns
     ]
     return min(remaining)
 
@@ -102,7 +102,7 @@ def reset_cooldowns(func: MaybeCoro):
         cooldown.clear(force_evict=True)
 
 
-def reset_bucket(func: MaybeCoro, *args, **kwargs):
+async def reset_bucket(func: MaybeCoro, *args, **kwargs):
     """
     Reset all buckets matching the provided arguments.
 
@@ -121,7 +121,7 @@ def reset_bucket(func: MaybeCoro, *args, **kwargs):
     """
     cooldowns: List[CooldownT] = _get_cooldowns_or_raise(func)
     for cooldown in cooldowns:
-        bucket = cooldown.get_bucket(*args, **kwargs)
+        bucket = await cooldown.get_bucket(*args, **kwargs)
         try:
             cooldown._get_cooldown_for_bucket(bucket, raise_on_create=True)
         except NonExistent:
