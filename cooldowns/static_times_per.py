@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List
 
 from .cooldown_times_per import CooldownTimesPer
 from .exceptions import CallableOnCooldown
+from .date_util import _utc_now
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown
@@ -70,7 +71,7 @@ class StaticTimesPer(CooldownTimesPer):
 
         self.current -= 1
 
-        now = datetime.datetime.utcnow()
+        now = _utc_now()
         reset: datetime.datetime = self.get_next_reset(now)
 
         self._next_reset.put_nowait(reset)

@@ -41,7 +41,7 @@ async def test_static_cooldown():
 @pytest.mark.asyncio
 async def test_get_static_bucket():
     cooldown = StaticCooldown(1, datetime.time())
-    hashed_args = cooldown.get_bucket(1, 2, three=3, four=4)
+    hashed_args = await cooldown.get_bucket(1, 2, three=3, four=4)
     assert hashed_args == _HashableArguments(1, 2, three=3, four=4)
 
 
@@ -178,6 +178,7 @@ def test_sync_static_cooldowns():
 @pytest.mark.asyncio
 async def test_static_checks():
     """Ensures the check works as expected"""
+
     # Only apply cooldowns if the first arg is 1
     @static_cooldown(
         1,
@@ -198,6 +199,7 @@ async def test_static_checks():
 @pytest.mark.asyncio
 async def test_static_async_checks():
     """Ensures the check works as expected with async methods"""
+
     # Only apply cooldowns if the first arg is 1
     async def mock_db_check(*args, **kwargs):
         # You can do database calls here or anything
@@ -229,7 +231,7 @@ async def test_static_cooldown_clearing():
 
     assert not cooldown._cache
 
-    r_1 = cooldown.get_bucket(1, 1)
+    r_1 = await cooldown.get_bucket(1, 1)
     assert isinstance(r_1, _HashableArguments)
 
     # Test both specific and global clearing
@@ -267,11 +269,11 @@ async def test_static_remaining():
         pass
 
     _cooldown: StaticCooldown = getattr(test, "_cooldowns")[0]
-    assert _cooldown.remaining_calls() == 2
+    assert await _cooldown.remaining_calls() == 2
     await test()
-    assert _cooldown.remaining_calls() == 1
+    assert await _cooldown.remaining_calls() == 1
     await test()
-    assert _cooldown.remaining_calls() == 0
+    assert await _cooldown.remaining_calls() == 0
     with pytest.raises(CallableOnCooldown):
         await test()
 
@@ -344,9 +346,9 @@ async def test_get_static_times_per():
 
     _cooldown: StaticCooldown = getattr(test, "_cooldowns")[0]
 
-    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is None
+    assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is None
     await test()
-    assert _cooldown.get_cooldown_times_per(_cooldown.get_bucket()) is not None
+    assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is not None
 
 
 def test_shared_crossover():

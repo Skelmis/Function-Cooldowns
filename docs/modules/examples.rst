@@ -198,7 +198,31 @@ Heres an example which rate-limits based off of the first argument.
     async def test_func(*args, **kwargs):
         .....
 
+Example async custom buckets
+----------------------------
 
+How to use async buckets to process data
+
+All you need is an enum with the ``process`` method which is async.
+
+Here is an example which rate-limits based off of the first argument.
+
+.. code-block:: python
+    :linenos:
+
+    class CustomBucket(Enum):
+        first_arg = 1
+
+        async def process(self, *args, **kwargs):
+            if self is CustomBucket.first_arg:
+                # This bucket is based ONLY off
+                # of the first argument passed
+                return args[0]
+
+    # Then to use
+    @cooldown(1, 1, bucket=CustomBucket.first_arg)
+    async def test_func(*args, **kwargs):
+        .....
 
 
 Stacking cooldown's

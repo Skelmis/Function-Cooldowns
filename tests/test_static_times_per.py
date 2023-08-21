@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 
 from cooldowns import StaticTimesPer, StaticCooldown, CallableOnCooldown
+from cooldowns.date_util import _utc_now
 
 
 @pytest.mark.asyncio
@@ -98,7 +99,7 @@ async def test_multiple_current_resets():
         [datetime.time(hour=3, minute=30, second=1)],
         StaticCooldown(2, datetime.time(hour=3, minute=30, second=1)),
     )
-    reset_at = cooldown_times_per.get_next_reset(datetime.datetime.utcnow())
+    reset_at = cooldown_times_per.get_next_reset(_utc_now())
     assert cooldown_times_per.fully_reset_at is None
 
     async with cooldown_times_per:
@@ -134,7 +135,7 @@ async def test_multiple_reset_times():
             ],
         ),
     )
-    reset_at_1 = cooldown_times_per.get_next_reset(datetime.datetime.utcnow())
+    reset_at_1 = cooldown_times_per.get_next_reset(_utc_now())
     assert cooldown_times_per.fully_reset_at is None
 
     async with cooldown_times_per:
@@ -144,7 +145,7 @@ async def test_multiple_reset_times():
     assert r_1 == reset_at_1
 
     await asyncio.sleep(1)
-    reset_at_2 = cooldown_times_per.get_next_reset(datetime.datetime.utcnow())
+    reset_at_2 = cooldown_times_per.get_next_reset(_utc_now())
     assert reset_at_1 != reset_at_2 and reset_at_1 is not reset_at_2
 
     async with cooldown_times_per:

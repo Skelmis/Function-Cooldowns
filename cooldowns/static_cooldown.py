@@ -3,10 +3,11 @@ import datetime
 import functools
 from typing import List, Callable, Optional, Union
 
-from . import Cooldown, CooldownBucketProtocol, utils
+from . import Cooldown, utils
 from .buckets import _HashableArguments
 from .cooldown import TP
 from .exceptions import NonExistent
+from .protocols import AsyncCooldownBucketProtocol, CooldownBucketProtocol
 from .static_times_per import StaticTimesPer
 from .utils import MaybeCoro, default_check, COOLDOWN_ID, maybe_coro
 
@@ -14,7 +15,7 @@ from .utils import MaybeCoro, default_check, COOLDOWN_ID, maybe_coro
 def static_cooldown(
     limit: int,
     reset_times: Union[datetime.time, List[datetime.time]],
-    bucket: CooldownBucketProtocol,
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
     check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[COOLDOWN_ID] = None,
@@ -115,7 +116,9 @@ class StaticCooldown(Cooldown):
         self,
         limit: int,
         reset_times: Union[datetime.time, List[datetime.time]],
-        bucket: Optional[CooldownBucketProtocol] = None,
+        bucket: Optional[
+            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
+        ] = None,
         func: Optional[Callable] = None,
         *,
         cooldown_id: Optional[Union[int, str]] = None,

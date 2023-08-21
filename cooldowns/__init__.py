@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from .buckets import CooldownBucket, SlashBucket
-from .protocols import CooldownBucketProtocol
+from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol
 from .cooldown import Cooldown, cooldown, shared_cooldown
 from .static_cooldown import StaticCooldown, static_cooldown
 from .cooldown_times_per import CooldownTimesPer
@@ -27,6 +27,7 @@ from .utils import (
 __all__ = (
     "CooldownBucket",
     "SlashBucket",
+    "AsyncCooldownBucketProtocol",
     "Cooldown",
     "cooldown",
     "shared_cooldown",
@@ -50,6 +51,6 @@ __all__ = (
     "get_all_cooldowns",
 )
 
-__version__ = "1.7.1"
+__version__ = "2.0.0"
 VersionInfo = namedtuple("VersionInfo", "major minor micro releaselevel serial")
-version_info = VersionInfo(major=1, minor=7, micro=1, releaselevel="final", serial=0)
+version_info = VersionInfo(major=0, minor=0, micro=0, releaselevel="final", serial=0)

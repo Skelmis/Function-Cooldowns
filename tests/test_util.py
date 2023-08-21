@@ -21,9 +21,9 @@ async def test_remaining_singluar():
     async def test():
         pass
 
-    assert utils.get_remaining_calls(test) == 1
+    assert await utils.get_remaining_calls(test) == 1
     await test()
-    assert utils.get_remaining_calls(test) == 0
+    assert await utils.get_remaining_calls(test) == 0
     with pytest.raises(CallableOnCooldown):
         await test()
 
@@ -31,9 +31,9 @@ async def test_remaining_singluar():
     async def test_2():
         pass
 
-    assert utils.get_remaining_calls(test_2) == 5
+    assert await utils.get_remaining_calls(test_2) == 5
     await test_2()
-    assert utils.get_remaining_calls(test_2) == 4
+    assert await utils.get_remaining_calls(test_2) == 4
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_remaining_multiple():
     async def test():
         pass
 
-    assert utils.get_remaining_calls(test) == 3
+    assert await utils.get_remaining_calls(test) == 3
 
 
 @pytest.mark.asyncio
@@ -56,7 +56,7 @@ async def test_reset_cooldowns():
 
     await test()
     assert _cooldown._cache
-    assert utils.get_remaining_calls(test) == 0
+    assert await utils.get_remaining_calls(test) == 0
 
     utils.reset_cooldowns(test)
     assert not _cooldown._cache
@@ -75,12 +75,12 @@ async def test_reset_buckets():
 
     assert len(_cooldown._cache.keys()) == 2
 
-    bucket_1 = _cooldown.get_bucket(1)
-    bucket_2 = _cooldown.get_bucket(2)
+    bucket_1 = await _cooldown.get_bucket(1)
+    bucket_2 = await _cooldown.get_bucket(2)
     assert bucket_1 in _cooldown._cache
     assert bucket_2 in _cooldown._cache
 
-    utils.reset_bucket(test, 2)
+    await utils.reset_bucket(test, 2)
 
     assert bucket_1 in _cooldown._cache
     assert bucket_2 not in _cooldown._cache
