@@ -35,8 +35,8 @@ async def maybe_coro(func: MaybeCoro, *args, **kwargs):
 
 
 def _get_cooldowns_or_raise(func: MaybeCoro) -> List[CooldownT]:
-    cooldowns: List[CooldownT] = getattr(func, "_cooldowns")
-    if not cooldowns:
+    cooldowns: Optional[List[CooldownT]] = getattr(func, "_cooldowns", None)
+    if cooldowns is None or not cooldowns:
         raise NoRegisteredCooldowns
 
     return cooldowns

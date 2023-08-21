@@ -11,6 +11,7 @@ from cooldowns.utils import (
     shared_cooldown_refs,
     define_shared_cooldown,
     get_shared_cooldown,
+    _get_cooldowns_or_raise,
 )
 
 
@@ -152,3 +153,11 @@ def test_get_shared_cooldown():
 def test_missing_get_shared_cooldown():
     with pytest.raises(NonExistent):
         get_shared_cooldown("r_2")
+
+
+def test_get_cooldowns_or_raise_no_cooldowns():
+    def test_func():
+        pass
+
+    with pytest.raises(NoRegisteredCooldowns):
+        _get_cooldowns_or_raise(test_func)
