@@ -141,7 +141,7 @@ Resets only the given buckets on a cooldown.
     ...
 
     # Reset the bucket with `1` as an argument
-    reset_bucket(test, 1)
+    await reset_bucket(test, 1)
 
 Cooldown checks
 ---------------
