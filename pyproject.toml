@@ -4,7 +4,8 @@ version = "2.0.1"
 description = "A simplistic decorator based approach to rate limiting function calls."
 authors = ["skelmis <skelmis.craft@gmail.com>"]
 license = "UNLICENSE"
-readme = "README.md"
+readme = "readme.md"
+packages = [{include = "cooldowns"}]
 
 [project]
 classifiers = [
