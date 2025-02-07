@@ -1,18 +1,21 @@
-[tool.poetry]
+[project]
 name = "function-cooldowns"
 version = "2.1.0"
 description = "A simplistic decorator based approach to rate limiting function calls."
-authors = ["skelmis <skelmis.craft@gmail.com>"]
+authors = [{name = "Skelmis", email="skelmis.craft@gmail.com"}]
 license = "UNLICENSE"
 readme = "readme.md"
-packages = [{include = "cooldowns"}]
-
-[project]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+
+[tool.poetry]
+packages = [{include = "cooldowns"}]
+requires-poetry = ">=2.0"
+
 
 [project.urls]
 "Issue tracker" = "https://github.com/Skelmis/Function-Cooldowns/issues"
