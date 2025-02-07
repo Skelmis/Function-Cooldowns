@@ -320,7 +320,12 @@ class Cooldown:
 
             This can then be used in :meth:`Cooldown.clear` calls.
         """
-        data = await maybe_coro(self._bucket.process, *args, **kwargs)
+        # A cheeky cheat to implement #19
+        # Allows for backwards compat, and makes the assumption if
+        # process doesnt exist then you want to call the bucket itself
+        bucket_method = getattr(self._bucket, "process", self._bucket)
+
+        data = await maybe_coro(bucket_method, *args, **kwargs)
         if self._bucket is CooldownBucket.all:
             return _HashableArguments(*data[0], **data[1])
 

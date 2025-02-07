@@ -136,6 +136,37 @@ async def test_custom_buckets():
 
     await test_func(2)
 
+@pytest.mark.asyncio
+async def test_custom_callable_as_bucket():
+    def first_arg(*args):
+        return args[0]
+
+    @cooldown(1, 1, bucket=first_arg)
+    async def test_func(*args, **kwargs):
+        pass
+
+    await test_func(1, 2, 3)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_func(1)
+
+    await test_func(2)
+
+@pytest.mark.asyncio
+async def test_async_custom_callable_as_bucket():
+    async def first_arg(*args):
+        return args[0]
+
+    @cooldown(1, 1, bucket=first_arg)
+    async def test_func(*args, **kwargs):
+        pass
+
+    await test_func(1, 2, 3)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_func(1)
+
+    await test_func(2)
 
 @pytest.mark.asyncio
 async def test_async_bucket_process():
