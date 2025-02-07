@@ -1,3 +1,3 @@
-from .bucket import CooldownBucketProtocol, AsyncCooldownBucketProtocol
+from .bucket import CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT
 
-__all__ = ("CooldownBucketProtocol", "AsyncCooldownBucketProtocol")
+__all__ = ("CooldownBucketProtocol", "AsyncCooldownBucketProtocol","CallableT")

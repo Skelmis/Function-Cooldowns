@@ -18,7 +18,7 @@ from .utils import (
 )
 from . import CooldownBucket, utils
 from .buckets import _HashableArguments
-from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol
+from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT
 
 logger = getLogger(__name__)
 
@@ -29,7 +29,7 @@ TP = TypeVar("TP", bound=CooldownTimesPer)
 def cooldown(
     limit: int,
     time_period: Union[float, datetime.timedelta],
-    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT],
     check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[COOLDOWN_ID] = None,
@@ -177,7 +177,7 @@ class Cooldown:
         limit: int,
         time_period: Union[float, datetime.timedelta],
         bucket: Optional[
-            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
+            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]
         ] = None,
         func: Optional[Callable] = None,
         *,
@@ -192,7 +192,7 @@ class Cooldown:
             period specified by ``time_period``
         time_period: Union[float, datetime.timedelta]
             The time period related to ``limit``. This is seconds.
-        bucket: Optional[Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]]
+        bucket: Optional[Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]]
             The :class:`Bucket` implementation to use
             as a bucket to separate cooldown buckets.
 
@@ -230,7 +230,7 @@ class Cooldown:
 
         self._func: Optional[Callable] = func
         self._bucket: Union[
-            CooldownBucketProtocol, AsyncCooldownBucketProtocol
+            CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT
         ] = bucket
         self.pending_reset: bool = False
         self._raw_last_bucket: dict = {"args": [], "kwargs": {}}
