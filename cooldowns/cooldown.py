@@ -442,7 +442,7 @@ class Cooldown:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"
 
     @property
-    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]:
+    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]:
         """Returns the underlying bucket to process cooldowns against."""
         return self._bucket
 
