@@ -18,7 +18,7 @@ from .utils import (
 )
 from . import CooldownBucket, utils
 from .buckets import _HashableArguments
-from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol
+from .protocols import CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT
 
 logger = getLogger(__name__)
 
@@ -29,7 +29,7 @@ TP = TypeVar("TP", bound=CooldownTimesPer)
 def cooldown(
     limit: int,
     time_period: Union[float, datetime.timedelta],
-    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT],
     check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[COOLDOWN_ID] = None,
@@ -177,7 +177,7 @@ class Cooldown:
         limit: int,
         time_period: Union[float, datetime.timedelta],
         bucket: Optional[
-            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
+            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]
         ] = None,
         func: Optional[Callable] = None,
         *,
@@ -192,7 +192,7 @@ class Cooldown:
             period specified by ``time_period``
         time_period: Union[float, datetime.timedelta]
             The time period related to ``limit``. This is seconds.
-        bucket: Optional[Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]]
+        bucket: Optional[Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]]
             The :class:`Bucket` implementation to use
             as a bucket to separate cooldown buckets.
 
@@ -230,7 +230,7 @@ class Cooldown:
 
         self._func: Optional[Callable] = func
         self._bucket: Union[
-            CooldownBucketProtocol, AsyncCooldownBucketProtocol
+            CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT
         ] = bucket
         self.pending_reset: bool = False
         self._raw_last_bucket: dict = {"args": [], "kwargs": {}}
@@ -320,7 +320,12 @@ class Cooldown:
 
             This can then be used in :meth:`Cooldown.clear` calls.
         """
-        data = await maybe_coro(self._bucket.process, *args, **kwargs)
+        # A cheeky cheat to implement #19
+        # Allows for backwards compat, and makes the assumption if
+        # process doesnt exist then you want to call the bucket itself
+        bucket_method = getattr(self._bucket, "process", self._bucket)
+
+        data = await maybe_coro(bucket_method, *args, **kwargs)
         if self._bucket is CooldownBucket.all:
             return _HashableArguments(*data[0], **data[1])
 
@@ -437,7 +442,7 @@ class Cooldown:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"
 
     @property
-    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]:
+    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]:
         """Returns the underlying bucket to process cooldowns against."""
         return self._bucket
 

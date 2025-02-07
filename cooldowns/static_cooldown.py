@@ -7,7 +7,7 @@ from . import Cooldown, utils
 from .buckets import _HashableArguments
 from .cooldown import TP
 from .exceptions import NonExistent
-from .protocols import AsyncCooldownBucketProtocol, CooldownBucketProtocol
+from .protocols import AsyncCooldownBucketProtocol, CooldownBucketProtocol, CallableT
 from .static_times_per import StaticTimesPer
 from .utils import MaybeCoro, default_check, COOLDOWN_ID, maybe_coro
 
@@ -15,7 +15,7 @@ from .utils import MaybeCoro, default_check, COOLDOWN_ID, maybe_coro
 def static_cooldown(
     limit: int,
     reset_times: Union[datetime.time, List[datetime.time]],
-    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT],
     check: Optional[MaybeCoro] = default_check,
     *,
     cooldown_id: Optional[COOLDOWN_ID] = None,
@@ -117,7 +117,7 @@ class StaticCooldown(Cooldown):
         limit: int,
         reset_times: Union[datetime.time, List[datetime.time]],
         bucket: Optional[
-            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol]
+            Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]
         ] = None,
         func: Optional[Callable] = None,
         *,

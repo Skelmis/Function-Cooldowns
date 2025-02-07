@@ -140,6 +140,29 @@ async def test_static_custom_buckets():
 
 
 @pytest.mark.asyncio
+async def test_static_custom_callable_buckets():
+    def first_arg(*args, **kwargs):
+        # This bucket is based ONLY off
+        # of the first argument passed
+        return args[0]
+
+    @static_cooldown(
+        1,
+        datetime.time(hour=3, minute=30, second=1),
+        bucket=first_arg,
+    )
+    async def test_func(*args, **kwargs):
+        pass
+
+    await test_func(1, 2, 3)
+
+    with pytest.raises(CallableOnCooldown):
+        await test_func(1)
+
+    await test_func(2)
+
+
+@pytest.mark.asyncio
 async def test_static_stacked_cooldowns():
     # Can call ONCE time_period second using the same args
     # Can call TWICE time_period second using the same kwargs

@@ -177,7 +177,7 @@ Functionally its the same as the previous one.
 Custom buckets
 --------------
 
-All you need is an enum with the ``process`` method.
+All you need is an enum with the ``process`` method or a generic callable.
 
 Heres an example which rate-limits based off of the first argument.
 
@@ -195,6 +195,21 @@ Heres an example which rate-limits based off of the first argument.
 
     # Then to use
     @cooldown(1, 1, bucket=CustomBucket.first_arg)
+    async def test_func(*args, **kwargs):
+        .....
+
+You can also do the following:
+
+.. code-block:: python
+    :linenos:
+
+    def first_arg(self, *args, **kwargs):
+        # This bucket is based ONLY off
+        # of the first argument passed
+        return args[0]
+
+    # Then to use
+    @cooldown(1, 1, bucket=first_arg)
     async def test_func(*args, **kwargs):
         .....
 
@@ -224,6 +239,20 @@ Here is an example which rate-limits based off of the first argument.
     async def test_func(*args, **kwargs):
         .....
 
+You can also do the following:
+
+.. code-block:: python
+    :linenos:
+
+    async def first_arg(self, *args, **kwargs):
+        # This bucket is based ONLY off
+        # of the first argument passed
+        return args[0]
+
+    # Then to use
+    @cooldown(1, 1, bucket=first_arg)
+    async def test_func(*args, **kwargs):
+        .....
 
 Stacking cooldown's
 -------------------

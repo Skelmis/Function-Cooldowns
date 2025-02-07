@@ -9,6 +9,7 @@ from cooldowns.exceptions import (
     NonExistent,
     CooldownAlreadyExists,
 )
+from cooldowns.protocols import CallableT
 
 if TYPE_CHECKING:
     from cooldowns import (
@@ -216,7 +217,7 @@ def get_all_cooldowns(
 def define_shared_cooldown(
     limit: int,
     time_period: float,
-    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT],
     cooldown_id: COOLDOWN_ID,
     *,
     check: Optional[MaybeCoro] = default_check,
@@ -279,7 +280,7 @@ def define_shared_cooldown(
 def define_shared_static_cooldown(
     limit: int,
     reset_times: Union[datetime.time, List[datetime.time]],
-    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol],
+    bucket: Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT],
     cooldown_id: COOLDOWN_ID,
     *,
     check: Optional[MaybeCoro] = default_check,
