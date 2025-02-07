@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "function-cooldowns"
+version = "2.0.1"
+description = "A simplistic decorator based approach to rate limiting function calls."
+authors = ["skelmis <skelmis.craft@gmail.com>"]
+license = "UNLICENSE"
+readme = "README.md"
+
+[project]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Issue tracker" = "https://github.com/Skelmis/Function-Cooldowns/issues"
+Documentation = "https://function-cooldowns.rtfd.io/"
+Homepage = "https://github.com/Skelmis/Function-Cooldowns"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+attrs = "^25.1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+freezegun = "^1.5.1"
+pytest-asyncio = "^0.25.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

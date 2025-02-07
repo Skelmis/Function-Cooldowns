@@ -5,3 +5,4 @@ function_cooldowns.egg-info
 build
 docs/_build
 docs/_static
+poetry.lock
