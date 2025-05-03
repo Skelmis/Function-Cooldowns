@@ -63,7 +63,8 @@ class StaticTimesPer(CooldownTimesPer):
         possible_options = [self.next_datetime(now, t) for t in self._reset_times]
         return min(possible_options)
 
-    async def __aenter__(self) -> StaticTimesPer:
+    async def increment(self) -> "StaticTimesPer":
+        """Inline equivalent to using async with"""
         if self.current == 0:
             raise CallableOnCooldown(
                 self._cooldown.func, self._cooldown, self.next_reset
@@ -78,3 +79,6 @@ class StaticTimesPer(CooldownTimesPer):
         self.loop.call_later((reset - now).total_seconds(), self._reset_invoke)
 
         return self
+
+    async def __aenter__(self) -> StaticTimesPer:
+        return await self.increment()

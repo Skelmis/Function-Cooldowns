@@ -2,6 +2,7 @@ from typing import Any, Protocol, Callable, Coroutine
 
 CallableT = Callable[..., Any] | Coroutine[Any, Any, Any]
 
+
 class CooldownBucketProtocol(Protocol):
     """CooldownBucketProtocol implementation Protocol."""
 

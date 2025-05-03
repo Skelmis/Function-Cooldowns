@@ -46,7 +46,8 @@ class CooldownTimesPer:
     def __repr__(self):
         return f"<CooldownTimesPer(limit={self.limit}, current={self.current}, time_period={self.time_period})>"
 
-    async def __aenter__(self) -> "CooldownTimesPer":
+    async def increment(self) -> "CooldownTimesPer":
+        """Inline equivalent to using async with"""
         if self.current == 0:
             raise CallableOnCooldown(
                 self._cooldown.func, self._cooldown, self.next_reset
@@ -60,6 +61,9 @@ class CooldownTimesPer:
         self.loop.call_later(self.time_period, self._reset_invoke)
 
         return self
+
+    async def __aenter__(self) -> "CooldownTimesPer":
+        return await self.increment()
 
     async def __aexit__(self, *_) -> None:
         ...

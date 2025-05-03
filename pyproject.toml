@@ -1,6 +1,6 @@
 [project]
 name = "function-cooldowns"
-version = "2.1.0"
+version = "2.2.0"
 description = "A simplistic decorator based approach to rate limiting function calls."
 authors = [{name = "Skelmis", email="skelmis.craft@gmail.com"}]
 license = "UNLICENSE"
@@ -31,6 +31,7 @@ attrs = "^25.1.0"
 pytest = "^8.3.4"
 freezegun = "^1.5.1"
 pytest-asyncio = "^0.25.3"
+black = "^25.1.0"
 
 [build-system]
 requires = ["poetry-core"]

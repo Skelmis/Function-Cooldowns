@@ -245,6 +245,16 @@ class Cooldown:
         if cooldown_id:
             utils.shared_cooldown_refs[cooldown_id] = self
 
+    async def increment(self, *args, **kwargs) -> "Cooldown":
+        """Inline equivalent to using async with"""
+        if not self._clean_task:
+            self._clean_task = asyncio.create_task(self._keep_buckets_clear())
+
+        last_bucket = await self.get_bucket(*args, **kwargs)
+        bucket: TP = self._get_cooldown_for_bucket(last_bucket)
+        await bucket.increment()
+        return self
+
     async def __aenter__(self) -> "Cooldown":
         if not self._clean_task:
             self._clean_task = asyncio.create_task(self._keep_buckets_clear())
@@ -442,7 +452,9 @@ class Cooldown:
         return f"Cooldown(limit={self.limit}, time_period={self.time_period}, func={self._func})"
 
     @property
-    def bucket(self) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]:
+    def bucket(
+        self,
+    ) -> Union[CooldownBucketProtocol, AsyncCooldownBucketProtocol, CallableT]:
         """Returns the underlying bucket to process cooldowns against."""
         return self._bucket
 

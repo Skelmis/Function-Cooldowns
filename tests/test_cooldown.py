@@ -136,6 +136,7 @@ async def test_custom_buckets():
 
     await test_func(2)
 
+
 @pytest.mark.asyncio
 async def test_custom_callable_as_bucket():
     def first_arg(*args):
@@ -152,6 +153,7 @@ async def test_custom_callable_as_bucket():
 
     await test_func(2)
 
+
 @pytest.mark.asyncio
 async def test_async_custom_callable_as_bucket():
     async def first_arg(*args):
@@ -167,6 +169,7 @@ async def test_async_custom_callable_as_bucket():
         await test_func(1)
 
     await test_func(2)
+
 
 @pytest.mark.asyncio
 async def test_async_bucket_process():
@@ -392,3 +395,33 @@ async def test_get_cooldown_times_per():
     assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is None
     await test()
     assert _cooldown.get_cooldown_times_per(await _cooldown.get_bucket()) is not None
+
+
+@pytest.mark.asyncio
+async def test_inline_cooldowns():
+    # Can be called once every second
+    # Default bucket is ALL arguments
+    @cooldown(1, 1, bucket=CooldownBucket.all)
+    async def test_func(*args, **kwargs) -> (tuple, dict):
+        return args, kwargs
+
+    _cooldown: Cooldown = getattr(test_func, "_cooldowns")[0]
+    # Call it once, so its on cooldown after this
+    data = await test_func(1, two=2)
+    assert data == ((1,), {"two": 2})
+
+    with pytest.raises(CallableOnCooldown):
+        # Since this uses the same arguments
+        # as the previous call, it comes under
+        # the same bucket, and thus gets rate-limited
+        await _cooldown.increment(1, two=2)
+
+    # Shouldn't error as it comes under the
+    # bucket _HashableArguments(1) rather then
+    # the bucket _HashableArguments(1, two=2)
+    # which are completely different
+    await test_func(1)
+
+    await _cooldown.increment(1, two=3)
+    with pytest.raises(CallableOnCooldown):
+        await _cooldown.increment(1, two=3)
